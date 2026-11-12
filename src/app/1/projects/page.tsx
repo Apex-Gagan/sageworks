@@ -3,6 +3,8 @@ import { Pic } from "@/components/shared/Pic";
 import { Parallax, Reveal } from "@/components/shared/Motion";
 import { Scroller } from "@/components/shared/Scroller";
 import { ButtonOne, Caption, Container } from "@/components/one/ui";
+import { Curtain, WordsUp } from "@/components/one/Modern";
+import { TriadMark } from "@/components/shared/Triad";
 import { captions } from "@/content/captions";
 import { contactHref } from "@/content/home";
 import {
@@ -29,7 +31,12 @@ export default function ProjectsOne() {
         <Container className="pb-12 pt-14 md:pt-20">
           <p className="label text-muted">Projects</p>
           <h1 className="display mt-6 max-w-5xl text-[clamp(2.75rem,6vw,6rem)] leading-[1.02]">
-            Environments designed for <em className="italic text-accent">the people inside them</em>
+            <WordsUp
+              segments={[
+                { text: "Environments designed for" },
+                { text: "the people inside them", className: "italic text-accent" },
+              ]}
+            />
           </h1>
           <div className="mt-10 grid gap-8 md:grid-cols-12 md:items-end">
             <p className="max-w-[52ch] text-[17px] leading-relaxed text-fg/80 md:col-span-6">{projectsHero.sub}</p>
@@ -66,8 +73,10 @@ export default function ProjectsOne() {
           <section key={cat.id} id={cat.id} className="scroll-mt-24 border-t border-line">
             <div className="bg-surface">
               <Container className="py-14 md:py-20">
+                <h2 className="display max-w-4xl text-[clamp(2.4rem,5vw,4.6rem)] leading-[1.03]">
+                  <WordsUp inView segments={[{ text: cat.title }]} />
+                </h2>
                 <Reveal>
-                  <h2 className="display max-w-4xl text-[clamp(2.4rem,5vw,4.6rem)] leading-[1.03]">{cat.title}</h2>
                   <p className="mt-5 max-w-[56ch] text-[16.5px] leading-relaxed text-fg/80">{cat.intro}</p>
                 </Reveal>
               </Container>
@@ -89,17 +98,21 @@ export default function ProjectsOne() {
                     </div>
 
                     <div className="lg:col-span-8">
-                      <Reveal>
-                        <figure>
+                      <figure>
+                        <Curtain>
                           <Pic k={lead} ratio="16 / 10" sizes="(min-width: 1024px) 62vw, 100vw" />
-                          <Caption>{captions[lead]}.</Caption>
-                        </figure>
-                      </Reveal>
+                        </Curtain>
+                        <Caption>{captions[lead]}.</Caption>
+                      </figure>
                       <div className="mt-5 columns-2 gap-5 md:columns-3">
                         {rest.map((k) => (
                           <Reveal key={k} className="mb-5 break-inside-avoid">
                             <figure>
-                              <Pic k={k} sizes="(min-width: 1024px) 21vw, 50vw" />
+                              <Pic
+                                k={k}
+                                sizes="(min-width: 1024px) 21vw, 50vw"
+                                imgClassName="transition-transform duration-[1200ms] ease-soft hover:scale-[1.05]"
+                              />
                               <Caption>{captions[k]}.</Caption>
                             </figure>
                           </Reveal>
@@ -167,7 +180,7 @@ export default function ProjectsOne() {
 
       {/* Project index and collaborators */}
       <section className="border-t border-line bg-surface">
-        <Container className="py-24 md:py-32">
+        <Container className="pt-24 md:pt-32">
           <h2 className="display text-[clamp(2.4rem,5vw,4.6rem)] leading-[1.03]">Project index</h2>
           <div className="mt-12 grid gap-12 lg:grid-cols-12">
             {index.map((g, gi) => (
@@ -187,12 +200,31 @@ export default function ProjectsOne() {
 
           <div className="mt-20 border-t border-line pt-10">
             <p className="text-[14px] text-muted">Architects, artists and studios we have worked alongside</p>
-            <p className="display mt-5 max-w-5xl text-[clamp(1.5rem,2.6vw,2.3rem)] leading-[1.35]">
-              {collaborators.join(", ")}.
-            </p>
           </div>
+        </Container>
 
-          <div className="mt-16">
+        {/* Collaborators as a slow band (the page's one marquee) */}
+        <div className="mt-6 overflow-hidden border-y border-line py-6">
+          <div className="flex w-max hover:[animation-play-state:paused] motion-safe:animate-marquee">
+            {[0, 1].map((copy) => (
+              <ul key={copy} aria-hidden={copy === 1} className="flex shrink-0 items-center">
+                {collaborators.map((name) => (
+                  <li
+                    key={name}
+                    className="display flex items-center gap-8 whitespace-nowrap pr-8 text-[clamp(1.5rem,2.5vw,2.3rem)] italic md:gap-12 md:pr-12"
+                  >
+                    {name}
+                    <TriadMark className="h-5 w-5 shrink-0 text-accent" />
+                  </li>
+                ))}
+              </ul>
+            ))}
+          </div>
+        </div>
+
+        <Container className="pb-24 md:pb-32">
+
+          <div className="mt-14">
             <ButtonOne href={contactHref}>Start a Conversation</ButtonOne>
           </div>
         </Container>

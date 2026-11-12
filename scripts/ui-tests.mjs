@@ -42,6 +42,7 @@ async function scrollers(page, label) {
     const wait = (ms) => new Promise((r) => setTimeout(r, ms));
     const res = [];
     for (const r of document.querySelectorAll('[role="region"][aria-label]')) {
+      if (r.offsetParent === null) continue; // not rendered at this width
       r.scrollIntoView({ block: "center", behavior: "instant" });
       await wait(500);
       const fwd = r.parentElement.querySelector('button[aria-label$="forward"]');
@@ -64,9 +65,62 @@ async function scrollers(page, label) {
   for (const s of out) ok(`${label} slider "${s.name}"`, s.fits ?? (s.moved && s.back), JSON.stringify(s));
 }
 
+/** Scroll the whole page slowly enough for every scroll-triggered reveal to fire. */
+async function walk(page) {
+  await page.evaluate(async () => {
+    for (let y = 0; y < document.documentElement.scrollHeight; y += 450) {
+      window.scrollTo({ top: y, behavior: "instant" });
+      await new Promise((r) => setTimeout(r, 140));
+    }
+  });
+  await sleep(2600);
+}
+
+/** Headline words still below their mask, and photographs still fully covered. */
+const unrevealed = (page) =>
+  page.evaluate(() => {
+    const ty = (el) => new DOMMatrix(getComputedStyle(el).transform).m42;
+    const words = [...document.querySelectorAll("h1 span.inline-block, h2 span.inline-block, p span.inline-block")].filter(
+      (el) => el.offsetParent && Math.abs(ty(el)) > 1,
+    ).length;
+    const curtains = [...document.querySelectorAll("div")].filter(
+      (el) => el.offsetParent && /inset\(100%/.test(getComputedStyle(el).clipPath),
+    ).length;
+    return { words, curtains };
+  });
+
 /* ------------------------------ Sample 2 home ----------------------------- */
 {
   const { page, errors } = await open("/2");
+
+  // hero: triad discs, torch, cycling capsule
+  await sleep(1800);
+  await page.click('[data-hero="home-two"] button[aria-label="Show Behaviour"]');
+  await sleep(700);
+  const hd = await page.evaluate(() => {
+    const hero = document.querySelector('[data-hero="home-two"]');
+    return {
+      pressed: hero.querySelector('button[aria-label="Show Behaviour"]').getAttribute("aria-pressed"),
+      label: hero.querySelector("[aria-live] strong")?.textContent,
+    };
+  });
+  ok("S2 home hero triad disc selects Behaviour", hd.pressed === "true" && hd.label === "Behaviour", JSON.stringify(hd));
+  await page.mouse.move(400, 300, { steps: 8 });
+  await sleep(1500);
+  const torch = await page.evaluate(() => {
+    const el = document.querySelector("[data-torch]");
+    const css = el.style.maskImage || el.style.webkitMaskImage || getComputedStyle(el).maskImage;
+    const m = css.match(/at ([\d.]+)px ([\d.]+)px/);
+    return m ? [Number(m[1]), Number(m[2])] : null;
+  });
+  ok("S2 home hero torch follows the pointer", torch && Math.abs(torch[0] - 400) < 12 && Math.abs(torch[1] - 300) < 12, JSON.stringify(torch));
+  const capIdx = () =>
+    page.evaluate(() => [...document.querySelectorAll('[data-hero="home-two"] h1 img')].findIndex((im) => im.className.includes("opacity-100")));
+  const c0 = await capIdx();
+  await sleep(3600);
+  const c1 = await capIdx();
+  ok("S2 home hero photo capsule cycles", c1 >= 0 && c0 !== c1, `${c0} => ${c1}`);
+
   // triad circles
   await into(page, 'button[aria-label^="Environment"]');
   await sleep(400);
@@ -122,6 +176,25 @@ async function scrollers(page, label) {
 /* ----------------------------- Sample 2 founder --------------------------- */
 {
   const { page, errors } = await open("/2/founder");
+
+  // hero: role pills preview their chapter in the portrait frame
+  await sleep(1500);
+  const pills = await page.$$("[data-role-pill]");
+  await pills[3].hover();
+  await sleep(800);
+  const rp = await page.evaluate(() => ({
+    maxim: document.querySelector("[data-role-maxim]")?.textContent,
+    broken: [...document.querySelectorAll("[data-role-pill]")].filter((a) => !document.querySelector(a.getAttribute("href"))).length,
+  }));
+  await page.mouse.move(700, 30);
+  await sleep(800);
+  const cleared = await page.evaluate(() => !document.querySelector("[data-role-maxim]"));
+  ok(
+    "S2 founder hero role pill previews its chapter and clears",
+    pills.length === 4 && rp.maxim === "The environment shapes biology." && rp.broken === 0 && cleared,
+    JSON.stringify({ ...rp, cleared }),
+  );
+
   await scrollers(page, "S2 founder");
   const p = await page.evaluate(async () => {
     const ids = ["business-leader", "scientist", "designer", "writer", "dr-gutsy", "global", "lived"];
@@ -146,6 +219,21 @@ async function scrollers(page, label) {
 /* ----------------------------- Sample 2 projects -------------------------- */
 {
   const { page, errors } = await open("/2/projects");
+
+  // hero: a button per kind of place swaps the backdrop
+  await sleep(1500);
+  await page.click('[data-place="academic"]');
+  await sleep(900);
+  const ph = await page.evaluate(() => ({
+    pressed: document.querySelector('[data-place="academic"]').getAttribute("aria-pressed"),
+    caption: document.querySelector("[data-place-caption]")?.textContent,
+  }));
+  ok("S2 projects hero place button swaps the backdrop", ph.pressed === "true" && /Academic spaces/.test(ph.caption ?? ""), JSON.stringify(ph));
+  await page.mouse.move(700, 30);
+  await sleep(6900);
+  const place = await page.evaluate(() => document.querySelector('[data-place][aria-pressed="true"]')?.dataset.place);
+  ok("S2 projects hero moves on by itself after a click", place && place !== "academic", place);
+
   const f = await page.evaluate(async () => {
     const tabs = [...document.querySelectorAll('[role="tab"]')];
     const out = [];
@@ -210,6 +298,18 @@ async function scrollers(page, label) {
   await sleep(8200);
   const t2 = await title();
   ok("S3 hero advances on its own after a click", t2 !== t1, `${t1} => ${t2}`);
+  await sleep(1300);
+  const wipe = await page.evaluate(() => getComputedStyle(document.querySelector('section[aria-roledescription="carousel"] .hl-wipe')).backgroundSize);
+  ok("S3 hero highlighter finishes its wipe", wipe === "100% 100%", wipe);
+  const thumbs = await page.$$("[data-slide-thumb]");
+  await thumbs[3].click();
+  await sleep(1300);
+  const t3 = await title();
+  const thumbOn = await thumbs[3].evaluate((b) => b.getAttribute("aria-pressed"));
+  await page.keyboard.press("ArrowLeft");
+  await sleep(1300);
+  const t4 = await title();
+  ok("S3 hero thumbnail and arrow key change the slide", thumbs.length === 4 && thumbOn === "true" && t3 !== t2 && t4 !== t3, `${t2} => ${t3} => ${t4}`);
 
   const svc = await page.evaluate(async () => {
     const btns = [...document.querySelectorAll("#work li > button[aria-expanded]")];
@@ -270,6 +370,25 @@ async function scrollers(page, label) {
 /* ----------------------------- Sample 3 founder --------------------------- */
 {
   const { page, errors } = await open("/3/founder");
+
+  // hero: role chips show their chapter's principle on the portrait card
+  await sleep(1500);
+  const chips = await page.$$("[data-role-chip]");
+  await chips[0].hover();
+  await sleep(700);
+  const pr1 = await page.evaluate(() => document.querySelector("[data-role-principle]")?.textContent);
+  await page.mouse.move(700, 30);
+  await sleep(800);
+  const pr2 = await page.evaluate(() => ({
+    gone: !document.querySelector("[data-role-principle]"),
+    badge: document.querySelector('[data-hero="founder-three"] [aria-live]')?.textContent,
+    broken: [...document.querySelectorAll("[data-role-chip]")].filter((a) => !document.querySelector(a.getAttribute("href"))).length,
+  }));
+  ok(
+    "S3 founder hero role chip shows its principle, then the credential returns",
+    chips.length === 4 && /Ideas must work\./.test(pr1 ?? "") && pr2.gone && /PhD/.test(pr2.badge ?? "") && pr2.broken === 0,
+    `${pr1} | ${JSON.stringify(pr2)}`,
+  );
   const p = await page.evaluate(() => ({
     missing: ["business-leader", "scientist", "designer", "writer", "dr-gutsy", "global", "lived"].filter((id) => !document.getElementById(id)),
     active: document.querySelector('header a[aria-current="page"]')?.textContent.trim(),
@@ -283,6 +402,28 @@ async function scrollers(page, label) {
 /* ----------------------------- Sample 3 projects -------------------------- */
 {
   const { page, errors } = await open("/3/projects");
+
+  // hero: the mosaic focuses the pointed photograph, and moves its caption on by itself
+  await sleep(1500);
+  const tiles = await page.$$("[data-mosaic-tile]");
+  await tiles[2].hover();
+  await sleep(900);
+  const mo = await page.evaluate(() => {
+    const t = [...document.querySelectorAll("[data-mosaic-tile]")];
+    return { lit: t.map((a) => a.dataset.lit).join(","), dim: getComputedStyle(t[0].querySelector("img")).opacity };
+  });
+  ok(
+    "S3 projects hero mosaic focuses the pointed photograph",
+    mo.lit === "false,false,true,false,false,false,false,false" && Number(mo.dim) < 0.6,
+    JSON.stringify(mo),
+  );
+  await page.mouse.move(700, 30);
+  const litAt = () => page.evaluate(() => [...document.querySelectorAll("[data-mosaic-tile]")].findIndex((a) => a.dataset.lit === "true"));
+  await sleep(400);
+  const l0 = await litAt();
+  await sleep(3100);
+  const l1 = await litAt();
+  ok("S3 projects hero mosaic caption moves on by itself", l0 >= 0 && l1 >= 0 && l0 !== l1, `${l0} => ${l1}`);
   const c = await page.evaluate(async () => {
     const tabs = [...document.querySelectorAll('#browse [role="tab"]')];
     const out = [];
@@ -335,11 +476,67 @@ async function scrollers(page, label) {
   await page.close();
 }
 
-/* --------------------------- Sample 1 regression -------------------------- */
-for (const path of ["/1", "/1/founder", "/1/projects", "/"]) {
+/* -------------------------------- Sample 1 -------------------------------- */
+{
+  const { page, errors } = await open("/1");
+  await walk(page);
+  const u = await unrevealed(page);
+  ok("S1 home every headline and photograph is revealed after scrolling", u.words === 0 && u.curtains === 0, JSON.stringify(u));
+  const counts = await page.evaluate(() => [...document.querySelectorAll("span.tabular-nums")].map((e) => e.textContent).join("|"));
+  ok("S1 home figures finish counting at their real values", counts === "20+|110,000|PhD|5", counts);
+
+  const step = await page.evaluate(async () => {
+    document.querySelector('[data-step="1"]').scrollIntoView({ block: "center", behavior: "instant" });
+    await new Promise((r) => setTimeout(r, 900));
+    return [...document.querySelectorAll("[data-step]")].map((e) => (e.className.includes("lg:opacity-100") ? 1 : 0)).join("");
+  });
+  ok("S1 home scroll steps follow the reader", step === "010", step);
+
+  const pin = await page.evaluate(async () => {
+    const sec = document.querySelector("[data-pinned-gallery]");
+    const top = sec.getBoundingClientRect().top + window.scrollY;
+    const read = () => new DOMMatrix(getComputedStyle(sec.querySelector(".w-max")).transform).m41;
+    window.scrollTo({ top: top + 10, behavior: "instant" });
+    await new Promise((r) => setTimeout(r, 500));
+    const a = read();
+    window.scrollTo({ top: top + (sec.offsetHeight - window.innerHeight) * 0.6, behavior: "instant" });
+    await new Promise((r) => setTimeout(r, 500));
+    return [Math.round(a), Math.round(read()), sec.offsetHeight > window.innerHeight * 1.5];
+  });
+  ok("S1 home pinned gallery pans sideways as the page scrolls", pin[2] && pin[1] < pin[0] - 300, pin.join(","));
+
+  const nav = await page.evaluate(async () => {
+    const h = document.querySelector("header");
+    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    window.scrollTo({ top: 1400, behavior: "instant" });
+    await wait(200);
+    window.scrollTo({ top: 1700, behavior: "instant" });
+    await wait(700);
+    const down = h.className.includes("-translate-y-full");
+    window.scrollTo({ top: 1500, behavior: "instant" });
+    await wait(700);
+    const up = !h.className.includes("-translate-y-full");
+    const bar = new DOMMatrix(getComputedStyle(h.querySelector('[aria-hidden="true"]')).transform).m11;
+    return { down, up, bar: Number(bar.toFixed(3)) };
+  });
+  ok("S1 header steps aside on scroll down, returns on scroll up, shows progress", nav.down && nav.up && nav.bar > 0.02 && nav.bar < 1, JSON.stringify(nav));
+
+  await scrollers(page, "S1 /1");
+  ok("/1 loads with no runtime errors", errors.length === 0, errors.join(" | "));
+  await page.close();
+}
+for (const path of ["/1/founder", "/1/projects"]) {
   const { page, errors } = await open(path);
-  if (path !== "/" && path !== "/1/founder") await scrollers(page, `S1 ${path}`);
+  await walk(page);
+  const u = await unrevealed(page);
+  ok(`S1 ${path} every headline and photograph is revealed after scrolling`, u.words === 0 && u.curtains === 0, JSON.stringify(u));
+  if (path === "/1/projects") await scrollers(page, `S1 ${path}`);
   ok(`${path} loads with no runtime errors`, errors.length === 0, errors.join(" | "));
+  await page.close();
+}
+{
+  const { page, errors } = await open("/");
+  ok("/ loads with no runtime errors", errors.length === 0, errors.join(" | "));
   await page.close();
 }
 
@@ -362,6 +559,11 @@ for (const path of ["/", "/1", "/1/founder", "/1/projects", "/2", "/2/founder", 
     return document.documentElement.scrollWidth - window.innerWidth;
   });
   ok(`mobile ${path} has no sideways overflow`, over <= 0, over);
+  if (path.startsWith("/1")) {
+    await walk(page);
+    const u = await unrevealed(page);
+    ok(`mobile ${path} every headline and photograph is revealed`, u.words === 0 && u.curtains === 0, JSON.stringify(u));
+  }
   ok(`mobile ${path} no runtime errors`, errors.length === 0, errors.join(" | "));
   if (path === "/3" || path === "/2") {
     const n = path === "/3" ? "three" : "two";

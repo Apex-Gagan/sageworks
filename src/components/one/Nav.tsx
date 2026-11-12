@@ -2,17 +2,30 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useMotionValueEvent, useScroll } from "motion/react";
 import { List, X } from "@phosphor-icons/react";
+import { ProgressLine } from "./Modern";
 import { TriadMark } from "@/components/shared/Triad";
 import { navItems } from "@/content/nav";
 import { contactHref } from "@/content/home";
 
 export function NavOne() {
   const [open, setOpen] = useState(false);
+  const [hidden, setHidden] = useState(false);
   const items = navItems("/1");
+  const { scrollY } = useScroll();
+
+  // Step aside while the reader scrolls down; come back as soon as they scroll up.
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    const previous = scrollY.getPrevious() ?? 0;
+    setHidden(latest > previous && latest > 320);
+  });
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-bg/92 backdrop-blur-md">
+    <header
+      className={`sticky top-0 z-40 border-b border-line bg-bg/92 backdrop-blur-md transition-transform duration-500 ease-soft ${hidden && !open ? "-translate-y-full" : "translate-y-0"}`}
+    >
+      <ProgressLine />
       <div className="mx-auto flex h-[68px] max-w-[1440px] items-center justify-between gap-6 px-5 md:px-10">
         <Link
           href="/1"

@@ -24,26 +24,44 @@ export type HeroSlide = Media & {
 };
 
 const SLIDE_MS = 7000;
+const SWIPE_PX = 48;
 
 /**
- * Full-width photo slider with a centred message on each slide. Pauses while
- * the pointer rests on it or a keyboard user is on its controls, and does not
- * move on its own under reduced motion.
+ * Full-width photo slider with a centred message on each slide. The current
+ * photograph pushes in slowly, the key words are highlighted as they arrive,
+ * and the row of small photographs underneath shows what comes next.
+ * Move with the arrows, the thumbnails, the left and right keys or a swipe.
+ * Pauses while the pointer rests on it or a keyboard user is on its controls,
+ * and does not move on its own under reduced motion.
  */
 export function HeroSlider({ slides }: { slides: HeroSlide[] }) {
-  const [i, setI] = useState(0);
+  // `prev` keeps the outgoing photograph moving while it fades, so it never snaps back.
+  const [{ i, prev }, setAt] = useState<{ i: number; prev: number | null }>({ i: 0, prev: null });
   const [hovered, setHovered] = useState(false);
   const [keyboardFocus, setKeyboardFocus] = useState(false);
+  const touchX = useRef<number | null>(null);
   const reduce = useReducedMotion();
   const auto = !reduce && !hovered && !keyboardFocus;
 
+  const show = useCallback(
+    (next: number | ((v: number) => number)) =>
+      setAt((s) => {
+        const n = typeof next === "function" ? next(s.i) : next;
+        return n === s.i ? s : { i: n, prev: s.i };
+      }),
+    [],
+  );
+  const go = useCallback(
+    (dir: number) => show((v) => (v + dir + slides.length) % slides.length),
+    [show, slides.length],
+  );
+
   useEffect(() => {
     if (!auto) return;
-    const id = window.setTimeout(() => setI((v) => (v + 1) % slides.length), SLIDE_MS);
+    const id = window.setTimeout(() => go(1), SLIDE_MS);
     return () => window.clearTimeout(id);
-  }, [i, auto, slides.length]);
+  }, [i, auto, go]);
 
-  const go = (dir: number) => setI((v) => (v + dir + slides.length) % slides.length);
   const s = slides[i];
   const Title = i === 0 ? "h1" : "p";
   const external = s.cta.href.startsWith("mailto:");
@@ -59,26 +77,46 @@ export function HeroSlider({ slides }: { slides: HeroSlide[] }) {
       onMouseLeave={() => setHovered(false)}
       onFocus={(e) => setKeyboardFocus((e.target as HTMLElement).matches(":focus-visible"))}
       onBlur={() => setKeyboardFocus(false)}
+      onKeyDown={(e) => {
+        if (e.key === "ArrowRight") go(1);
+        if (e.key === "ArrowLeft") go(-1);
+      }}
+      onTouchStart={(e) => {
+        touchX.current = e.touches[0].clientX;
+      }}
+      onTouchEnd={(e) => {
+        if (touchX.current === null) return;
+        const dx = e.changedTouches[0].clientX - touchX.current;
+        touchX.current = null;
+        if (Math.abs(dx) > SWIPE_PX) go(dx < 0 ? 1 : -1);
+      }}
     >
       <div className="absolute inset-0 -z-10">
-        {slides.map((slide, n) => (
-          <Image
-            key={slide.src}
-            src={slide.src}
-            alt={n === i ? slide.alt : ""}
-            fill
-            preload={n === 0}
-            sizes="100vw"
-            placeholder="blur"
-            blurDataURL={slide.blur}
-            className={`object-cover transition-[opacity,transform] duration-[1600ms] ease-soft ${n === i ? "scale-100 opacity-100" : "scale-[1.05] opacity-0"}`}
-          />
-        ))}
+        {slides.map((slide, n) => {
+          const moving = n === i || n === prev;
+          return (
+            <Image
+              key={slide.src}
+              src={slide.src}
+              alt={n === i ? slide.alt : ""}
+              fill
+              preload={n === 0}
+              sizes="100vw"
+              placeholder="blur"
+              blurDataURL={slide.blur}
+              className={`object-cover transition-opacity duration-[1600ms] ease-soft ${n === i ? "opacity-100" : "opacity-0"}`}
+              style={{
+                transformOrigin: n % 2 ? "70% 40%" : "30% 60%",
+                animation: moving && !reduce ? `kenburns ${SLIDE_MS + 2600}ms ease-out forwards` : undefined,
+              }}
+            />
+          );
+        })}
         <div className="absolute inset-0 bg-[#10181f]/55" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#10181f]/70 via-transparent to-[#10181f]/25" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#10181f]/80 via-transparent to-[#10181f]/25" />
       </div>
 
-      <div className="mx-auto flex min-h-[min(78dvh,760px)] max-w-[1100px] flex-col items-center justify-center px-14 pb-24 pt-16 text-center text-white md:min-h-[min(80dvh,780px)] md:px-24">
+      <div className="mx-auto flex min-h-[min(80dvh,780px)] max-w-[1100px] flex-col items-center justify-center px-14 pb-36 pt-16 text-center text-white md:min-h-[min(84dvh,820px)] md:px-24 md:pb-40">
         <AnimatePresence mode="wait">
           <motion.div
             key={i}
@@ -89,7 +127,7 @@ export function HeroSlider({ slides }: { slides: HeroSlide[] }) {
             aria-live="polite"
           >
             <Title className="display mx-auto max-w-[20ch] text-[clamp(2.2rem,5.2vw,4.5rem)] leading-[1.12]">
-              {s.pre} <span className="hl">{s.mark}</span>
+              {s.pre} <span className="hl-wipe">{s.mark}</span>
               {s.post ? ` ${s.post}` : ""}
             </Title>
             <p className="mx-auto mt-6 max-w-[52ch] text-[17px] leading-relaxed text-white/90 md:text-[19px]">{s.sub}</p>
@@ -112,7 +150,7 @@ export function HeroSlider({ slides }: { slides: HeroSlide[] }) {
         type="button"
         aria-label="Previous slide"
         onClick={() => go(-1)}
-        className="absolute left-3 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-white/50 text-white transition-colors duration-300 hover:bg-white hover:text-[#151b25] md:left-8 md:h-12 md:w-12"
+        className="absolute left-3 top-[44%] grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-white/50 text-white transition-colors duration-300 hover:bg-white hover:text-[#151b25] md:left-8 md:h-12 md:w-12"
       >
         <ArrowLeft size={18} />
       </button>
@@ -120,32 +158,49 @@ export function HeroSlider({ slides }: { slides: HeroSlide[] }) {
         type="button"
         aria-label="Next slide"
         onClick={() => go(1)}
-        className="absolute right-3 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-white/50 text-white transition-colors duration-300 hover:bg-white hover:text-[#151b25] md:right-8 md:h-12 md:w-12 lg:right-16"
+        className="absolute right-3 top-[44%] grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-white/50 text-white transition-colors duration-300 hover:bg-white hover:text-[#151b25] md:right-8 md:h-12 md:w-12 lg:right-16"
       >
         <ArrowRight size={18} />
       </button>
 
-      <div className="absolute inset-x-0 bottom-7 flex justify-center gap-2">
-        {slides.map((slide, n) => (
-          <button
-            key={slide.src}
-            type="button"
-            aria-label={`Show slide ${n + 1}: ${slide.pre} ${slide.mark}`}
-            aria-pressed={n === i}
-            onClick={() => setI(n)}
-            className="group relative h-6 w-12"
-          >
-            <span className="absolute inset-x-0 top-1/2 h-[3px] -translate-y-1/2 overflow-hidden rounded-full bg-white/35 transition-colors group-hover:bg-white/60">
-              {n === i ? (
-                <span
-                  key={`${i}-${auto}`}
-                  className="absolute inset-0 origin-left rounded-full bg-accent"
-                  style={auto ? { animation: `progress ${SLIDE_MS}ms linear forwards` } : undefined}
-                />
-              ) : null}
-            </span>
-          </button>
-        ))}
+      {/* What comes next: a small photograph per slide, the current one filling up */}
+      <div className="absolute inset-x-0 bottom-6 flex justify-center gap-2.5 px-5 md:bottom-8 md:gap-3">
+        {slides.map((slide, n) => {
+          const on = n === i;
+          return (
+            <button
+              key={slide.src}
+              type="button"
+              data-slide-thumb
+              aria-label={`Show slide ${n + 1}: ${slide.pre} ${slide.mark}`}
+              aria-pressed={on}
+              onClick={() => show(n)}
+              className={`group relative h-11 w-[4.25rem] overflow-hidden rounded-[8px] transition-[transform,box-shadow] duration-500 ease-soft md:h-[3.75rem] md:w-24 ${on ? "-translate-y-1 shadow-[0_0_0_2px_var(--accent)]" : "shadow-[0_0_0_1px_rgba(255,255,255,0.45)] hover:-translate-y-0.5"}`}
+            >
+              <Image
+                src={slide.src}
+                alt=""
+                fill
+                sizes="96px"
+                placeholder="blur"
+                blurDataURL={slide.blur}
+                className="object-cover"
+              />
+              <span
+                className={`absolute inset-0 bg-[#10181f] transition-opacity duration-500 ${on ? "opacity-0" : "opacity-55 group-hover:opacity-20"}`}
+              />
+              <span className="absolute inset-x-0 bottom-0 h-[3px] bg-white/30">
+                {on ? (
+                  <span
+                    key={`${i}-${auto}`}
+                    className="absolute inset-0 origin-left bg-accent"
+                    style={auto ? { animation: `progress ${SLIDE_MS}ms linear forwards` } : undefined}
+                  />
+                ) : null}
+              </span>
+            </button>
+          );
+        })}
       </div>
     </section>
   );

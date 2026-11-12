@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { Pic, imageData } from "@/components/shared/Pic";
 import { Reveal } from "@/components/shared/Motion";
 import { Scroller } from "@/components/shared/Scroller";
+import { ProjectsHeroTwo, type HeroCategory } from "@/components/two/Hero";
 import { GalleryTwo, type GalleryItem } from "@/components/two/Interactive";
 import { ProjectList, type ProjectRow } from "@/components/two/Signature";
 import { ButtonTwo, Disc, Glow, Note, Sheet, Wrap } from "@/components/two/ui";
-import { captions } from "@/content/captions";
+import { captions, type ImageKey } from "@/content/captions";
 import { contactHref } from "@/content/home";
 import {
   categories,
@@ -63,34 +63,25 @@ const rows: ProjectRow[] = projects.map((p) => {
   };
 });
 
+/** One photograph for each kind of place; the hero swaps between them. */
+const heroPhotos: Record<string, ImageKey> = {
+  hospitals: "hospitals/paediatric-ceiling",
+  academic: "academic/marc-auditorium",
+  hospitality: "hospitality/valley-rangoli-restaurant",
+  workplaces: "hospitality/office-lounge",
+};
+
+const heroCats: HeroCategory[] = categories.map((c) => {
+  const d = imageData(heroPhotos[c.id]);
+  return { id: c.id, label: c.label, title: c.title, media: { src: d.src, blur: d.blur, alt: d.alt } };
+});
+
 export default function ProjectsTwo() {
-  const heroImg = imageData("hospitals/paediatric-ceiling");
 
   return (
     <>
       {/* Hero */}
-      <section className="relative isolate flex min-h-[92dvh] items-end overflow-hidden">
-        <div className="absolute inset-0 -z-10">
-          <Image
-            src={heroImg.src}
-            alt={heroImg.alt}
-            fill
-            preload
-            sizes="100vw"
-            placeholder="blur"
-            blurDataURL={heroImg.blur}
-            className="animate-breathe object-cover object-[50%_20%]"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-bg via-bg/55 to-bg/15" />
-        </div>
-        <Wrap className="pb-28 pt-28 md:pb-36">
-          <p className="label text-fg/75">Projects</p>
-          <h1 className="display mt-6 max-w-[19ch] text-[clamp(2.7rem,6vw,6.25rem)] leading-[0.99]">
-            Environments designed for <strong className="text-accent">the people inside them</strong>
-          </h1>
-          <p className="mt-8 max-w-[52ch] text-[17px] leading-relaxed text-fg/85">{projectsHero.sub}</p>
-        </Wrap>
-      </section>
+      <ProjectsHeroTwo label="Projects" sub={projectsHero.sub} cats={heroCats} />
 
       {/* The wall */}
       <Sheet>

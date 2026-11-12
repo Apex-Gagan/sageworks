@@ -3,6 +3,7 @@ import { Pic, imageData } from "@/components/shared/Pic";
 import { Reveal } from "@/components/shared/Motion";
 import { Scroller } from "@/components/shared/Scroller";
 import { ProjectBrowser, ThenNow, type ProjectCard, type ThenNowItem } from "@/components/three/Interactive";
+import { ProjectsHeroThree, type MosaicTile } from "@/components/three/Hero";
 import { Heading, Hl, Pill, Small, Wrap3 } from "@/components/three/ui";
 import { captions, type ImageKey } from "@/content/captions";
 import { contactHref } from "@/content/home";
@@ -60,33 +61,26 @@ const mosaic: ImageKey[] = [
   "hospitals/paediatric-ceiling",
 ];
 
+const mosaicTiles: MosaicTile[] = mosaic.map((k) => {
+  const d = imageData(k);
+  return { src: d.src, blur: d.blur, alt: d.alt, tag: labels[k.split("/")[0]] };
+});
+
 export default function ProjectsThree() {
   return (
     <>
       {/* Hero: centred statement over a mosaic of the work */}
-      <section>
-        <Wrap3 className="pb-16 pt-14 md:pb-24 md:pt-20">
-          <div className="mx-auto max-w-[940px] text-center">
-            <p className="text-[13px] font-semibold uppercase tracking-[0.1em] text-accent-ink">Projects</p>
-            <h1 className="display mt-4 text-[clamp(2.5rem,5.6vw,4.75rem)] leading-[1.12]">
-              Environments designed for <Hl>the people inside them</Hl>
-            </h1>
-            <p className="mt-6 text-[19px] leading-relaxed text-fg/85 md:text-[21px]">{projectsHero.sub}</p>
-          </div>
-          <div className="mt-12 grid grid-cols-2 overflow-hidden rounded-[14px] md:grid-cols-4">
-            {mosaic.map((k, i) => (
-              <Pic
-                key={k}
-                k={k}
-                ratio="3 / 2"
-                sizes="(min-width: 768px) 310px, 50vw"
-                preload={i === 0}
-                className="rounded-none"
-              />
-            ))}
-          </div>
-        </Wrap3>
-      </section>
+      <ProjectsHeroThree
+        label="Projects"
+        title={
+          <>
+            Environments designed for <span className="hl-wipe">the people inside them</span>
+          </>
+        }
+        sub={projectsHero.sub}
+        tiles={mosaicTiles}
+        href="#browse"
+      />
 
       {/* Statement on the grey panel */}
       <section>
