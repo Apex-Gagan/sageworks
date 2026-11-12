@@ -4,7 +4,8 @@
  * Sagework design tokens.
  * Each sample is scoped by a class on its layout wrapper:
  *   .theme-one  Sample 1 "Still"   light, editorial, sharp corners
- *   .theme-two  Sample 2 "Canopy"  dark, immersive, soft corners
+ *   .theme-two  Sample 2 "Canopy"  dark forest, marigold accent, circles and arches
+ *   .theme-three Sample 3 "Folio"  cool porcelain, indigo ink, vermilion accent, leaf frames
  * Swap --accent / --fg here once the approved Sagework green is confirmed.
  */
 
@@ -20,6 +21,8 @@
   --color-deep: var(--deep);
   --color-on-deep: var(--on-deep);
   --color-on-deep-muted: var(--on-deep-muted);
+  --color-tint: var(--tint);
+  --color-accent-soft: var(--accent-soft);
 
   --font-display: var(--display);
   --font-body: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
@@ -30,6 +33,21 @@
   --radius-control: var(--control-radius);
 
   --animate-breathe: breathe 28s ease-in-out infinite alternate;
+  --animate-turn: turn 48s linear infinite;
+
+  @keyframes turn {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @keyframes progress {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
 
   @keyframes breathe {
     from {
@@ -56,6 +74,8 @@
   --display: var(--font-cormorant), "Iowan Old Style", Georgia, serif;
   --media-radius: 0px;
   --control-radius: 0px;
+  --tint: #dde2d1;
+  --accent-soft: #b9cfae;
 }
 
 .theme-one {
@@ -76,20 +96,41 @@
 }
 
 .theme-two {
-  --bg: #0d1611;
-  --surface: #14211a;
-  --surface-2: #1b2c22;
-  --fg: #ebe9dc;
-  --muted: #a4ae9f;
-  --line: rgb(235 233 220 / 0.14);
-  --accent: #cfe39a;
-  --on-accent: #10190f;
-  --deep: #080f0b;
-  --on-deep: #ebe9dc;
-  --on-deep-muted: #a4ae9f;
+  --bg: #0c1410;
+  --surface: #131e18;
+  --surface-2: #1a2920;
+  --fg: #ede8da;
+  --muted: #a6ad9e;
+  --line: rgb(237 232 218 / 0.14);
+  --accent: #e9b54d;
+  --on-accent: #17130a;
+  --deep: #070d0a;
+  --on-deep: #ede8da;
+  --on-deep-muted: #a6ad9e;
+  --tint: rgb(233 181 77 / 0.1);
+  --accent-soft: #e9b54d;
   --display: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
-  --media-radius: 20px;
+  --media-radius: 24px;
   --control-radius: 999px;
+}
+
+.theme-three {
+  --bg: #f5f6f8;
+  --surface: #eaecf1;
+  --surface-2: #dee2ea;
+  --fg: #1a2040;
+  --muted: #586080;
+  --line: rgb(26 32 64 / 0.15);
+  --accent: #c4472a;
+  --on-accent: #fbfbfd;
+  --deep: #1a2040;
+  --on-deep: #eef0f6;
+  --on-deep-muted: #aab0c9;
+  --tint: #f6e4dd;
+  --accent-soft: #f0a48e;
+  --display: var(--font-jost), ui-sans-serif, system-ui, sans-serif;
+  --media-radius: 8px;
+  --control-radius: 8px;
 }
 
 html {
@@ -106,7 +147,8 @@ body {
 }
 
 .theme-one,
-.theme-two {
+.theme-two,
+.theme-three {
   background: var(--bg);
   color: var(--fg);
   min-height: 100dvh;
@@ -149,8 +191,37 @@ body {
   letter-spacing: -0.012em;
 }
 .theme-two .display {
-  font-weight: 500;
+  font-weight: 350;
   letter-spacing: -0.035em;
+}
+.theme-two .display strong {
+  font-weight: 560;
+}
+.theme-three .display {
+  font-weight: 300;
+  letter-spacing: -0.022em;
+}
+.theme-three .display em {
+  font-style: italic;
+}
+.theme-three.grain::after {
+  opacity: 0.035;
+}
+
+/* Sample 3 signature frame: two opposite corners rounded, like a leaf. */
+.leaf {
+  border-radius: clamp(48px, 9vw, 132px) 8px clamp(48px, 9vw, 132px) 8px;
+}
+.leaf-sm {
+  border-radius: 44px 6px 44px 6px;
+}
+.leaf-flip {
+  border-radius: 8px clamp(48px, 9vw, 132px) 8px clamp(48px, 9vw, 132px);
+}
+
+/* Sample 2 signature frame: an arch. */
+.arch {
+  border-radius: 999px 999px 24px 24px;
 }
 
 /* Small mono label used for citations and figure captions */

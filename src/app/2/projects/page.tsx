@@ -4,7 +4,8 @@ import { Pic, imageData } from "@/components/shared/Pic";
 import { Reveal } from "@/components/shared/Motion";
 import { Scroller } from "@/components/shared/Scroller";
 import { GalleryTwo, type GalleryItem } from "@/components/two/Interactive";
-import { ButtonTwo, Note, Wrap } from "@/components/two/ui";
+import { ProjectList, type ProjectRow } from "@/components/two/Signature";
+import { ButtonTwo, Disc, Glow, Note, Sheet, Wrap } from "@/components/two/ui";
 import { captions } from "@/content/captions";
 import { contactHref } from "@/content/home";
 import {
@@ -43,21 +44,24 @@ const galleryItems: GalleryItem[] = projects.flatMap((p) =>
     }),
 );
 
-/** Card widths for the twelve project notes, so the grid has rhythm. */
-const noteSpans = [
-  "lg:col-span-7",
-  "lg:col-span-5",
-  "lg:col-span-5",
-  "lg:col-span-7",
-  "lg:col-span-6",
-  "lg:col-span-6",
-  "lg:col-span-8",
-  "lg:col-span-4",
-  "lg:col-span-4",
-  "lg:col-span-8",
-  "lg:col-span-6",
-  "lg:col-span-6",
-];
+const rows: ProjectRow[] = projects.map((p) => {
+  const lead = imageData(p.images[0]);
+  return {
+    slug: p.slug,
+    title: p.title,
+    place: p.place,
+    theme: p.theme,
+    body: p.body,
+    credit: p.credit,
+    src: lead.src,
+    blur: lead.blur,
+    alt: lead.alt,
+    thumbs: p.images.slice(1, 4).map((k) => {
+      const d = imageData(k);
+      return { src: d.src, blur: d.blur, alt: d.alt };
+    }),
+  };
+});
 
 export default function ProjectsTwo() {
   const heroImg = imageData("hospitals/paediatric-ceiling");
@@ -77,121 +81,131 @@ export default function ProjectsTwo() {
             blurDataURL={heroImg.blur}
             className="animate-breathe object-cover object-[50%_20%]"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-bg via-bg/60 to-bg/20" />
+          <div className="absolute inset-0 bg-gradient-to-t from-bg via-bg/55 to-bg/15" />
         </div>
-        <Wrap className="pb-14 pt-28 md:pb-20">
+        <Wrap className="pb-28 pt-28 md:pb-36">
           <p className="label text-fg/75">Projects</p>
-          <h1 className="display mt-6 max-w-[20ch] text-[clamp(2.8rem,6vw,6.25rem)] leading-[0.98]">
-            Environments designed for <span className="text-accent">the people inside them</span>
+          <h1 className="display mt-6 max-w-[19ch] text-[clamp(2.7rem,6vw,6.25rem)] leading-[0.99]">
+            Environments designed for <strong className="text-accent">the people inside them</strong>
           </h1>
           <p className="mt-8 max-w-[52ch] text-[17px] leading-relaxed text-fg/85">{projectsHero.sub}</p>
         </Wrap>
       </section>
 
       {/* The wall */}
-      <section>
-        <Wrap className="py-16 md:py-24">
+      <Sheet>
+        <Wrap className="pb-28 pt-16 md:pb-44 md:pt-24">
           <GalleryTwo items={galleryItems} filters={categories.map((c) => ({ id: c.id, label: c.label }))} />
         </Wrap>
-      </section>
+      </Sheet>
 
       {/* Statement */}
-      <section className="border-y border-line bg-surface">
-        <Wrap className="py-24 md:py-36">
+      <Sheet tone="surface">
+        <Glow className="-left-40 -top-20" />
+        <Wrap className="relative pb-28 pt-24 md:pb-44 md:pt-36">
           <Reveal>
-            <p className="display mx-auto max-w-5xl text-center text-[clamp(2rem,4.6vw,4.4rem)] leading-[1.02]">
-              {projectsHero.note}
+            <p className="display mx-auto max-w-5xl text-center text-[clamp(2rem,4.6vw,4.4rem)] leading-[1.04]">
+              The environment is not simply the setting in which health happens.{" "}
+              <strong className="text-accent">It is one of the inputs shaping it.</strong>
             </p>
           </Reveal>
         </Wrap>
-      </section>
+      </Sheet>
 
       {/* Project notes */}
-      <section>
-        <Wrap className="py-24 md:py-36">
-          <h2 className="display max-w-3xl text-[clamp(2.4rem,5.2vw,5rem)] leading-[1]">
-            Twelve bodies of work, <span className="text-accent">briefly</span>
-          </h2>
-          <div className="mt-14 grid gap-4 md:grid-cols-2 lg:grid-cols-12">
-            {projects.map((p, i) => (
-              <Reveal key={p.slug} className={noteSpans[i % noteSpans.length]} delay={(i % 2) * 0.06}>
-                <article className="flex h-full flex-col overflow-hidden rounded-[28px] border border-line bg-surface">
-                  <Pic
-                    k={p.images[0]}
-                    ratio="16 / 9"
-                    sizes="(min-width: 1024px) 56vw, 100vw"
-                    className="rounded-none"
-                    imgClassName="transition-transform duration-[1400ms] ease-soft hover:scale-[1.04]"
-                  />
-                  <div className="flex flex-1 flex-col p-7 md:p-9">
-                    <p className="text-[13.5px] text-muted">{p.place}</p>
-                    <h3 className="display mt-2 text-[clamp(1.7rem,2.6vw,2.4rem)] leading-[1.04]">{p.title}</h3>
-                    <p className="mt-2 text-[15.5px] text-accent">{p.theme}</p>
-                    <p className="mt-5 max-w-[56ch] text-[15.5px] leading-relaxed text-fg/80">{p.body}</p>
-                    {p.credit ? <p className="mt-auto pt-6 text-[13px] text-muted">{p.credit}</p> : null}
-                  </div>
-                </article>
-              </Reveal>
-            ))}
+      <Sheet>
+        <Wrap className="pb-28 pt-24 md:pb-44 md:pt-36">
+          <div className="grid gap-8 pb-12 lg:grid-cols-12 lg:items-end">
+            <h2 className="display text-[clamp(2.2rem,4.8vw,4.6rem)] leading-[1.02] lg:col-span-7">
+              Twelve bodies of work, <strong className="text-accent">in brief</strong>
+            </h2>
+            <p className="text-[16px] leading-relaxed text-muted lg:col-span-4 lg:col-start-9">
+              Select a project to read its note. On a larger screen, move across the list to see each one.
+            </p>
           </div>
+          <ProjectList items={rows} />
         </Wrap>
-      </section>
+      </Sheet>
 
       {/* Site to space */}
-      <section className="border-y border-line bg-surface">
-        <Wrap className="py-24 md:py-36">
+      <Sheet tone="surface">
+        <Wrap className="pb-28 pt-24 md:pb-44 md:pt-36">
           <Reveal>
-            <h2 className="display text-[clamp(2.4rem,5.2vw,5rem)] leading-[1]">
-              From site <span className="text-accent">to space</span>
+            <h2 className="display text-[clamp(2.2rem,4.8vw,4.6rem)] leading-[1.02]">
+              From site <strong className="text-accent">to space</strong>
             </h2>
             <p className="mt-6 max-w-[54ch] text-[17px] leading-relaxed text-fg/80">
               The same places, seen during construction and after completion.
             </p>
           </Reveal>
-          <div className="mt-14 space-y-6">
-            {transformations.map((t) => (
-              <Reveal key={t.title} className="grid gap-4 md:grid-cols-12">
-                <figure className="md:col-span-5">
-                  <Pic k={t.before} ratio="4 / 3" sizes="(min-width: 768px) 40vw, 100vw" imgClassName="saturate-[0.7]" />
-                  <Note>{t.beforeLabel}</Note>
-                </figure>
-                <figure className="md:col-span-7">
-                  <Pic k={t.after} ratio="16 / 8.57" sizes="(min-width: 768px) 56vw, 100vw" />
-                  <Note>{t.afterLabel}</Note>
-                </figure>
+          <div className="mt-16 space-y-24 md:space-y-28">
+            {transformations.map((t, i) => (
+              <Reveal key={t.title} className="grid items-center gap-10 lg:grid-cols-12">
+                <div className={`relative lg:col-span-8 ${i % 2 === 1 ? "lg:col-start-5" : ""}`}>
+                  <div className="overflow-hidden rounded-[28px] md:rounded-[40px]">
+                    <Pic k={t.after} ratio="16 / 9" sizes="(min-width: 1024px) 62vw, 100vw" className="rounded-none" />
+                  </div>
+                  <Disc
+                    k={t.before}
+                    sizes="(min-width: 1024px) 20vw, 40vw"
+                    imgClassName="saturate-[0.65]"
+                    className={`absolute -bottom-10 w-[34%] border-[6px] border-surface ${i % 2 === 1 ? "-right-3 md:-right-8" : "-left-3 md:-left-8"}`}
+                  />
+                </div>
+                <div className={`lg:col-span-3 ${i % 2 === 1 ? "lg:col-start-1 lg:row-start-1" : "lg:col-start-10"}`}>
+                  <h3 className="display text-[clamp(1.8rem,2.8vw,2.6rem)] leading-[1.04]">{t.title}</h3>
+                  <dl className="mt-6 space-y-4 text-[15px]">
+                    <div className="border-t border-line pt-3">
+                      <dt className="font-mono text-[11.5px] uppercase tracking-[0.16em] text-muted">Then</dt>
+                      <dd className="mt-1 text-fg/85">{t.beforeLabel}</dd>
+                    </div>
+                    <div className="border-t border-line pt-3">
+                      <dt className="font-mono text-[11.5px] uppercase tracking-[0.16em] text-accent">Now</dt>
+                      <dd className="mt-1 text-fg/85">{t.afterLabel}</dd>
+                    </div>
+                  </dl>
+                </div>
               </Reveal>
             ))}
           </div>
         </Wrap>
-      </section>
+      </Sheet>
 
       {/* People */}
-      <section>
-        <Wrap className="pb-10 pt-24 md:pt-36">
-          <h2 className="display max-w-4xl text-[clamp(2.4rem,5.2vw,5rem)] leading-[1]">
-            Made with the people <span className="text-accent">who build and run them</span>
+      <Sheet>
+        <Wrap className="pb-12 pt-24 md:pt-36">
+          <h2 className="display max-w-4xl text-[clamp(2.2rem,4.8vw,4.6rem)] leading-[1.02]">
+            Made with the people <strong className="text-accent">who build and run them</strong>
           </h2>
         </Wrap>
         <Scroller
           label="photographs of the team at work"
           tone="two"
-          className="pb-24 md:pb-36"
-          trackClassName="flex snap-x snap-proximity scroll-px-5 gap-4 px-5 md:scroll-px-10 md:px-10"
+          className="pb-28 md:pb-44"
+          trackClassName="flex items-start snap-x snap-proximity scroll-px-5 gap-5 px-5 md:scroll-px-10 md:px-10"
           controlsClassName="mx-auto mt-8 max-w-[1480px] justify-end px-5 md:px-10"
         >
-          {processShots.map((k) => (
-            <figure key={k} className="w-[70vw] shrink-0 snap-start sm:w-[40vw] lg:w-[26vw]">
-              <Pic k={k} ratio="4 / 5" sizes="(min-width: 1024px) 26vw, 70vw" pos="50% 25%" />
-              <Note>{captions[k]}.</Note>
-            </figure>
-          ))}
+          {processShots.map((k, i) => {
+            const arch = i % 2 === 0;
+            return (
+              <figure
+                key={k}
+                className={`w-[66vw] shrink-0 snap-start sm:w-[38vw] lg:w-[24vw] ${arch ? "" : "mt-14"}`}
+              >
+                <div className={`overflow-hidden ${arch ? "arch" : "rounded-[24px]"}`}>
+                  <Pic k={k} ratio="4 / 5" sizes="(min-width: 1024px) 24vw, 66vw" pos="50% 25%" className="rounded-none" />
+                </div>
+                <Note>{captions[k]}.</Note>
+              </figure>
+            );
+          })}
         </Scroller>
-      </section>
+      </Sheet>
 
       {/* Index and collaborators */}
-      <section className="border-t border-line bg-surface">
-        <Wrap className="py-24 md:py-36">
-          <h2 className="display text-[clamp(2.4rem,5.2vw,5rem)] leading-[1]">Project index</h2>
+      <Sheet tone="surface">
+        <Wrap className="pb-28 pt-24 md:pb-44 md:pt-36">
+          <h2 className="display text-[clamp(2.2rem,4.8vw,4.6rem)] leading-[1.02]">Project index</h2>
           <div className="mt-12 grid gap-12 lg:grid-cols-12">
             {index.map((g, gi) => (
               <div key={g.group} className={gi === 0 ? "lg:col-span-6" : "lg:col-span-3"}>
@@ -223,7 +237,7 @@ export default function ProjectsTwo() {
             <ButtonTwo href={contactHref}>Start a Conversation</ButtonTwo>
           </div>
         </Wrap>
-      </section>
+      </Sheet>
     </>
   );
 }

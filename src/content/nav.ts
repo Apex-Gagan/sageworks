@@ -1,9 +1,9 @@
 /**
- * Navigation shared by both samples. The samples cover three pages
+ * Navigation shared by all samples. The samples cover three pages
  * (home, founder, projects); the remaining items point at the matching
  * homepage section until those pages are built.
  */
-export type Base = "/1" | "/2";
+export type Base = "/1" | "/2" | "/3";
 
 export function navItems(base: Base) {
   return [

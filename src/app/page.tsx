@@ -6,11 +6,11 @@ import { TriadMark } from "@/components/shared/Triad";
 import type { ImageKey } from "@/content/captions";
 
 export const metadata: Metadata = {
-  title: "Sagework | Two design directions",
+  title: "Sagework | Three design directions",
 };
 
 type Sample = {
-  id: "1" | "2";
+  id: "1" | "2" | "3";
   name: string;
   line: string;
   references: string;
@@ -34,12 +34,22 @@ const samples: Sample[] = [
   {
     id: "2",
     name: "Canopy",
-    line: "Dark, immersive and photography-led. Large statements, a filterable wall of work and stronger calls to action.",
+    line: "Dark forest and marigold. The triad becomes three overlapping photographs, portraits sit in arches, and sections slide over one another like sheets.",
     references: "Mindvalley for philosophy and scale. Dr Chatterjee for warmth and authority.",
     type: "Bricolage Grotesque with Hanken Grotesk",
-    palette: ["#0d1611", "#14211a", "#cfe39a", "#ebe9dc"],
+    palette: ["#0c1410", "#131e18", "#e9b54d", "#ede8da"],
     image: "academic/msap-aerial-mist",
     dark: true,
+  },
+  {
+    id: "3",
+    name: "Folio",
+    line: "Cool porcelain, indigo ink and one vermilion accent. A fixed side rail, leaf-shaped frames, and selectors that let a visitor choose what to read.",
+    references: "Seed for evidence on the page. Aesop for restraint. A gallery catalogue for structure.",
+    type: "Jost with Hanken Grotesk",
+    palette: ["#f5f6f8", "#eaecf1", "#c4472a", "#1a2040"],
+    image: "hospitals/mangalore-shell-lobby",
+    dark: false,
   },
 ];
 
@@ -63,33 +73,33 @@ export default function Overview() {
 
         <section className="py-14 md:py-20">
           <h1 className="display max-w-4xl text-[clamp(2.75rem,6vw,5.75rem)] leading-[1.02]">
-            Two directions for <em className="italic text-accent">one human system</em>
+            Three directions for <em className="italic text-accent">one human system</em>
           </h1>
           <p className="mt-7 max-w-[62ch] text-[17px] leading-relaxed text-fg/80">
             Each sample covers the same three pages with the same approved copy and photography, so the
             difference you see is the design itself. Open any page below, then use the switch at the
-            bottom of the screen to compare the two.
+            bottom of the screen to compare them.
           </p>
         </section>
 
-        <section className="grid gap-6 lg:grid-cols-2">
+        <section className="grid gap-6 lg:grid-cols-3">
           {samples.map((s) => (
             <article key={s.id} className="flex flex-col border border-line bg-surface">
               <Link href={`/${s.id}`} className="group block overflow-hidden" aria-label={`Open sample ${s.id} homepage`}>
                 <Pic
                   k={s.image}
                   ratio="16 / 10"
-                  sizes="(min-width: 1024px) 48vw, 100vw"
+                  sizes="(min-width: 1024px) 32vw, 100vw"
                   preload={s.id === "1"}
                   imgClassName="transition-transform duration-[1400ms] ease-soft group-hover:scale-[1.03]"
                 />
               </Link>
-              <div className="flex flex-1 flex-col p-7 md:p-10">
+              <div className="flex flex-1 flex-col p-7 md:p-8">
                 <p className="text-[13.5px] text-muted">Sample {s.id}</p>
                 <h2 className="display mt-2 text-[clamp(2.6rem,4.4vw,4rem)] leading-none">{s.name}</h2>
-                <p className="mt-5 max-w-[48ch] text-[16px] leading-relaxed text-fg/85">{s.line}</p>
+                <p className="mb-8 mt-5 max-w-[48ch] text-[16px] leading-relaxed text-fg/85">{s.line}</p>
 
-                <dl className="mt-8 grid gap-5 border-t border-line pt-6 text-[14px] sm:grid-cols-2">
+                <dl className="mt-auto grid gap-5 border-t border-line pt-6 text-[14px]">
                   <div>
                     <dt className="text-muted">Draws on</dt>
                     <dd className="mt-1.5 leading-snug">{s.references}</dd>
@@ -98,7 +108,7 @@ export default function Overview() {
                     <dt className="text-muted">Typefaces</dt>
                     <dd className="mt-1.5 leading-snug">{s.type}</dd>
                   </div>
-                  <div className="sm:col-span-2">
+                  <div>
                     <dt className="text-muted">Palette</dt>
                     <dd className="mt-2.5 flex gap-2">
                       {s.palette.map((c) => (
@@ -118,7 +128,7 @@ export default function Overview() {
                     <li key={p.label} className="border-b border-line">
                       <Link
                         href={`/${s.id}${p.path}`}
-                        className="group flex items-center justify-between py-4 text-[16px] transition-colors hover:text-accent"
+                        className="group flex items-center justify-between gap-4 py-4 text-[16px] transition-colors hover:text-accent"
                       >
                         <span className="display text-[1.5rem] leading-none">
                           {p.label} {s.id}

@@ -2,7 +2,7 @@
 
 # Sagework website
 
-Design samples for the Sagework website (client: Dr Shruti Pai). Two complete design
+Design samples for the Sagework website (client: Dr Shruti Pai). Three complete design
 directions, each covering three pages, so the client can compare and choose one.
 
 - Repository: https://github.com/Apex-Gagan/sageworks
@@ -17,26 +17,34 @@ npm run dev      # local development on http://localhost:3000
 npm run build    # production build (what Vercel runs)
 npm run start    # serve the production build
 npm run lint     # eslint
+npm run test:ui  # 64 interaction checks in headless Chrome (dev server must be running;
+                 # set BASE_URL / CHROME_PATH if not localhost:3000 / default Chrome)
 ```
+
+After changing any interactive component, run `npm run test:ui` and add a check to
+`scripts/ui-tests.mjs` for anything new.
 
 ## Routes
 
 | Route          | What it is                                     |
 | -------------- | ---------------------------------------------- |
-| `/`            | Overview page that links all six sample pages  |
+| `/`            | Overview page that links all nine sample pages |
 | `/1`           | Homepage, Sample 1 "Still"                     |
 | `/1/founder`   | Founder page, Sample 1                         |
 | `/1/projects`  | Projects page, Sample 1                        |
 | `/2`           | Homepage, Sample 2 "Canopy"                    |
 | `/2/founder`   | Founder page, Sample 2                         |
 | `/2/projects`  | Projects page, Sample 2                        |
+| `/3`           | Homepage, Sample 3 "Folio"                     |
+| `/3/founder`   | Founder page, Sample 3                         |
+| `/3/projects`  | Projects page, Sample 3                        |
 
 The other pages in the content master (Discover, Five Senses, Dr Gutsy, Research,
 Work with Sagework, Contact) are not built yet. Their navigation items point at the
 matching homepage section, and every "Start a Conversation" button opens an email to
 `NEXT_PUBLIC_CONTACT_EMAIL`.
 
-## The two directions
+## The three directions
 
 The client's references were Mindvalley (philosophy), Dr Rangan Chatterjee (authority),
 Seed (science-led design) and Aesop (visual atmosphere).
@@ -49,13 +57,30 @@ of services with a changing photograph, five senses as expanding photo strips, a
 index that follows the reader on the founder page.
 
 **Sample 2, "Canopy"** leans on Mindvalley and Dr Chatterjee.
-Deep forest background, bone text, one soft lime accent. Bricolage Grotesque headings,
-pill buttons, 20 to 28px radii, portraits in an arch. Full-bleed photography, a
-statement that lights up word by word on scroll, triad panels that stack, a moving
-ribbon of projects, a bento of services, a filterable project wall with a keyboard
-friendly lightbox.
+Deep forest background, bone text, one marigold accent. Bricolage Grotesque headings set
+light, with the key words in a heavier weight and the accent colour. Its signature
+shapes come from the triad: circles and arches. Sections are "sheets" with a large
+rounded top that slide over the one before. Notable pieces: an inline photo capsule in
+the hero headline, a rotating seal carrying the Sagework line, the triad as three
+overlapping photographs you can select, a wave of arches and frames for projects,
+services as a row of arches, Dr Gutsy's question in a speech bubble, a project list
+with a photograph that follows the pointer, a filterable wall with a lightbox, and a
+giant wordmark closing the footer. Each founder chapter has its own layout.
 
-Both share Hanken Grotesk for body copy and DM Mono for labels and citations.
+**Sample 3, "Folio"** leans on Seed, Aesop and a gallery catalogue.
+Cool porcelain, indigo ink, one vermilion accent. Jost headings set light with italic
+emphasis. Structurally different from the other two: a fixed side rail instead of a
+top bar (a top bar with a full-screen menu below 1280px), and selectors that let the
+visitor choose what to read. Its signature shape is the leaf: a frame with two
+opposite corners rounded. Notable pieces: a hero slideshow of the work, the present
+need and SAGE OS (S, A, G, E as the four steps) added from the Discover page, the
+triad as tabs, a mosaic of work, services as a list with a detail panel and a
+"Discuss ..." enquiry link per service, the five senses as a contact sheet with one
+cited finding each, Dr Gutsy's questions on three tilted notes, both white-paper
+series, a project catalogue with a thumbnail viewer per project, and a then/now
+toggle for construction photographs.
+
+All three share Hanken Grotesk for body copy and DM Mono for labels and citations.
 
 ## Where things live
 
@@ -64,22 +89,32 @@ src/
   app/
     layout.tsx        root layout, metadata, fonts (robots: noindex while in review)
     fonts.ts          next/font/local definitions
-    globals.css       Tailwind import, design tokens, .theme-one / .theme-two scopes
-    page.tsx          overview of both samples
+    globals.css       Tailwind import, design tokens, .theme-one / -two / -three scopes,
+                      shape classes (.arch for Sample 2, .leaf for Sample 3)
+    page.tsx          overview of the three samples
     1/                Sample 1 routes and layout
     2/                Sample 2 routes and layout
+    3/                Sample 3 routes and layout
   components/
     shared/           Pic (image frame), Motion (Reveal, Parallax, ScrollText),
                       Scroller (every horizontal strip), Triad (mark and diagram),
                       SampleSwitcher (review-only)
     one/              Sample 1 nav, footer, controls, interactive pieces
-    two/              Sample 2 nav, footer, controls, interactive pieces
+    two/              Sample 2 nav, footer, ui (Sheet, Arch, Disc, Seal, Glow),
+                      Interactive (senses, questions, chapter pills, gallery),
+                      Signature (TriadCircles, ProjectList)
+    three/            Sample 3 Sidebar, footer, ui (Box, Leaf, buttons),
+                      Interactive (HeroSlides, TriadTabs, ServiceSelector,
+                      SensesSheet, Catalogue, ThenNow)
   content/            ALL copy and data. Edit text here, not in components.
     home.ts           homepage copy (content master, Page 1)
     founder.ts        founder copy (content master, Page 2)
+    discover.ts       supporting copy from Pages 3, 4, 6 and 7: present need,
+                      SAGE OS, where Sagework applies, one cited finding per
+                      sense, the WISE series, per-service enquiry links
     projects.ts       projects, categories, project index, collaborators
     captions.ts       alt text and captions for every photograph
-    nav.ts            navigation items shared by both samples
+    nav.ts            navigation items shared by all samples
   data/images.json    generated: path, size and blur placeholder per photograph
   fonts/              self-hosted woff2 files (SIL Open Font License)
 public/images/        optimised client photographs, grouped by category
@@ -110,10 +145,19 @@ scripts/
   gentle drift that pauses on hover; arrows hide when the content already fits.
 - **No current-time calls in server components** (`new Date()`), because Cache
   Components prerendering rejects them. The footer year is a literal.
-- **Each sample is theme-locked** (Sample 1 light, Sample 2 dark) on purpose, so the
-  client compares two art-directed looks rather than one design in two modes.
-- Sample 1 uses radius 0 everywhere. Sample 2 uses full pills for controls and
-  20 to 28px for media and panels.
+- **Each sample is theme-locked** (Samples 1 and 3 light, Sample 2 dark) on purpose, so
+  the client compares art-directed looks rather than one design in two modes.
+- **Shape rules.** Sample 1: radius 0 everywhere. Sample 2: full pills for controls;
+  photographs in arches, circles or 24px frames; sections as rounded sheets.
+  Sample 3: 8px for controls and ordinary photographs; feature photographs in a leaf.
+- **Emphasis stays in the same typeface.** Sample 1 and 3 use italic, Sample 2 uses a
+  heavier weight (`<strong>`) plus the accent colour. Never mix a second family in.
+- **`--accent-soft`** is the accent to use on deep panels, where the normal accent
+  would not have enough contrast (Sample 3's vermilion on indigo).
+- **Sticky content inside a Sample 2 `Sheet`** works because the sheet uses
+  `overflow-clip`, not `overflow-hidden`. Keep it that way.
+- **Auto-moving pieces pause on hover and on keyboard focus only.** A mouse click on a
+  control must not leave them paused (see `HeroSlides`).
 
 ## Adding or replacing photographs
 
@@ -172,6 +216,25 @@ Defined in `.env.example`. Copy to `.env.local` locally; add the same keys in Ve
 - Tested arrows, mouse drag, auto drift, accordions, sense selectors, question
   rotator, chapter indexes, gallery filters, lightbox and both mobile menus.
 
+### 2026-11-12, Sample 3 added and Sample 2 redesigned
+
+- **Sample 3 "Folio" built** (`/3`, `/3/founder`, `/3/projects`): new palette, new
+  typeface (Jost, self-hosted), a side-rail layout and its own set of interactive
+  components. It adds the present need, SAGE OS, where Sagework applies, cited findings
+  for each sense and the WISE series, all taken from the content master.
+- **Sample 2 "Canopy" redesigned** so it no longer reads as a generic dark template:
+  lime accent replaced by marigold, headings set light with weighted emphasis, and the
+  generic pieces replaced (stacking triad cards, bento of services, card grid of
+  projects, uniform founder panels) with the signature pieces listed above.
+- Overview page and sample switcher now cover three samples.
+- `Scroller` gained a third button style for Sample 3.
+- **Testing.** Every page was captured top to bottom in a headless browser at 1440px,
+  and the two new homepages at 390px. A scripted suite of 64 checks passes: every
+  slider, selector, tab set, accordion, filter, lightbox, hover preview, slideshow,
+  toggle and mobile menu; no sideways overflow on any of the ten routes at phone
+  width; no runtime errors. The suite found one real flaw, now fixed: clicking the
+  hero slideshow's Next button left auto-advance paused.
+
 ## Open items for the client
 
 - **Professional portraits of Dr Shruti** (2023 to 2025 shoots) were not in the
@@ -191,6 +254,14 @@ Defined in `.env.example`. Copy to `.env.local` locally; add the same keys in Ve
 - **Laboratory and research photographs** requested for the Biology lens were not in
   the folders; Biology currently uses the physiotherapy corridor.
 - LinkedIn URL, Privacy Notice and company footer details are still to be supplied.
+- **Sample 3 shows more than the approved homepage copy.** The present need, SAGE OS,
+  the sector list, the cited findings and the WISE series are the client's own words
+  from other pages of the content master, placed on the homepage. Confirm she is happy
+  for them to appear there.
+- **Two emphasis splits are hard-coded** rather than read from the content files, so
+  the accent can fall on the right words: the founder question on the Sample 2
+  homepage and the closing lens line on the Sample 2 and 3 founder pages. If that copy
+  changes, change it in those pages too.
 
 ## Before going live
 

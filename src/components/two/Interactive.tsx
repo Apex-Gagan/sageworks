@@ -25,7 +25,7 @@ export function SensesTwo({ items }: { items: MediaItem[] }) {
   return (
     <div className="grid gap-8 lg:grid-cols-12 lg:gap-14">
       <div className="lg:col-span-6">
-        <div className="relative aspect-[4/3] overflow-hidden rounded-[28px] bg-surface lg:sticky lg:top-28 lg:aspect-[4/5]">
+        <div className="arch relative aspect-[4/3] overflow-hidden bg-surface-2 lg:sticky lg:top-28 lg:aspect-[4/5]">
           {items.map((item, i) => (
             <Image
               key={item.name}

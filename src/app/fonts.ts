@@ -3,7 +3,7 @@ import localFont from "next/font/local";
 /**
  * All fonts are self-hosted from src/fonts (SIL Open Font License).
  * Sample 1 display: Cormorant Garamond. Sample 2 display: Bricolage Grotesque.
- * Shared body: Hanken Grotesk. Shared mono (citations, labels): DM Mono.
+ * Sample 3 display: Jost. Shared body: Hanken Grotesk. Shared mono: DM Mono.
  */
 
 export const cormorant = localFont({
@@ -27,6 +27,23 @@ export const bricolage = localFont({
   src: "../fonts/bricolage-grotesque-latin-opsz-normal.woff2",
   weight: "200 800",
   variable: "--font-bricolage",
+  display: "swap",
+});
+
+export const jost = localFont({
+  src: [
+    {
+      path: "../fonts/jost-latin-wght-normal.woff2",
+      weight: "100 900",
+      style: "normal",
+    },
+    {
+      path: "../fonts/jost-latin-wght-italic.woff2",
+      weight: "100 900",
+      style: "italic",
+    },
+  ],
+  variable: "--font-jost",
   display: "swap",
 });
 

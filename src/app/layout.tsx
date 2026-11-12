@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { bricolage, cormorant, dmMono, hanken } from "./fonts";
+import { bricolage, cormorant, dmMono, hanken, jost } from "./fonts";
 import "./globals.css";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
@@ -25,7 +25,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${cormorant.variable} ${bricolage.variable} ${hanken.variable} ${dmMono.variable} antialiased`}
+      className={`${cormorant.variable} ${bricolage.variable} ${jost.variable} ${hanken.variable} ${dmMono.variable} antialiased`}
     >
       <body>{children}</body>
     </html>

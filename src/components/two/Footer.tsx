@@ -9,16 +9,16 @@ import { ButtonTwo, Wrap } from "./ui";
 export function FooterTwo() {
   const items = navItems("/2");
   return (
-    <footer className="bg-deep">
-      <Wrap className="py-6">
-        <div className="relative isolate overflow-hidden rounded-[28px]">
+    <footer className="relative -mt-10 overflow-clip rounded-t-[40px] bg-deep md:-mt-16 md:rounded-t-[64px]">
+      <Wrap className="pt-6">
+        <div className="relative isolate overflow-hidden rounded-[34px] md:rounded-[52px]">
           <div className="absolute inset-0 -z-10">
             <Pic k="academic/msap-aerial-green" cover sizes="100vw" className="rounded-none" />
-            <div className="absolute inset-0 bg-gradient-to-t from-deep via-deep/70 to-deep/30" />
+            <div className="absolute inset-0 bg-gradient-to-t from-deep via-deep/70 to-deep/25" />
           </div>
-          <Reveal className="px-6 pb-14 pt-40 md:px-14 md:pb-20 md:pt-64">
+          <Reveal className="px-6 pb-14 pt-44 md:px-14 md:pb-20 md:pt-72">
             <h2 className="display max-w-4xl text-[clamp(2.4rem,5.6vw,5.4rem)] leading-[1]">
-              Better health begins with <span className="text-accent">better conditions</span>
+              Better health begins with <strong className="text-accent">better conditions</strong>
             </h2>
             <p className="mt-7 max-w-[56ch] text-[17px] leading-relaxed text-fg/85">{closing.body}</p>
             <div className="mt-9">
@@ -55,10 +55,17 @@ export function FooterTwo() {
         </div>
       </Wrap>
 
-      <Wrap className="flex flex-col gap-2 border-t border-line pb-24 pt-6 text-[12.5px] text-muted sm:flex-row sm:justify-between">
+      <Wrap className="flex flex-col gap-2 border-t border-line pt-6 text-[12.5px] text-muted sm:flex-row sm:justify-between">
         <p>© 2026 Sagework. All rights reserved.</p>
         <p>Evidence-led advisory and design practice.</p>
       </Wrap>
+
+      <p
+        aria-hidden="true"
+        className="display pointer-events-none -mb-[5.5vw] mt-6 select-none whitespace-nowrap text-center text-[25vw] leading-[0.82] text-fg/[0.055]"
+      >
+        Sagework
+      </p>
     </footer>
   );
 }

@@ -1,16 +1,21 @@
 # Sagework website
 
-Two design directions for the Sagework website, each with a homepage, founder page and
+Three design directions for the Sagework website, each with a homepage, founder page and
 projects page, built with Next.js, TypeScript and Tailwind CSS.
 
-| Page          | Sample 1 "Still" | Sample 2 "Canopy" |
-| ------------- | ---------------- | ----------------- |
-| Homepage      | `/1`             | `/2`              |
-| Founder page  | `/1/founder`     | `/2/founder`      |
-| Projects page | `/1/projects`    | `/2/projects`     |
+| Page          | Sample 1 "Still" | Sample 2 "Canopy" | Sample 3 "Folio" |
+| ------------- | ---------------- | ----------------- | ---------------- |
+| Homepage      | `/1`             | `/2`              | `/3`             |
+| Founder page  | `/1/founder`     | `/2/founder`      | `/3/founder`     |
+| Projects page | `/1/projects`    | `/2/projects`     | `/3/projects`    |
 
-`/` is an overview that links all six. A small switch at the bottom of every sample page
-flips to the same page in the other sample.
+`/` is an overview that links all nine. A small switch at the bottom of every sample page
+flips to the same page in another sample.
+
+- **Still**: light sage paper, serif headings, quiet and editorial.
+- **Canopy**: dark forest with a marigold accent, circles and arches, immersive.
+- **Folio**: cool porcelain and indigo with a vermilion accent, side navigation,
+  leaf-shaped frames, selectors that let the visitor choose what to read.
 
 ## Run locally
 
@@ -21,6 +26,19 @@ npm run dev
 ```
 
 Open http://localhost:3000.
+
+## Test
+
+With the dev server running on port 3000:
+
+```bash
+npm run test:ui
+```
+
+This drives a headless Chrome through every slider, selector, tab set, filter, lightbox
+and mobile menu on all three samples, and checks each route at phone width for sideways
+overflow. Set `CHROME_PATH` if Chrome is not in the default location, and `BASE_URL` to
+test another address.
 
 ## Deploy to Vercel
 
@@ -39,5 +57,5 @@ decisions, conventions and the list of items still needed from the client.
 
 ## Fonts
 
-Cormorant Garamond, Bricolage Grotesque, Hanken Grotesk and DM Mono, self-hosted from
-`src/fonts/` under the SIL Open Font License 1.1.
+Cormorant Garamond, Bricolage Grotesque, Jost, Hanken Grotesk and DM Mono, self-hosted
+from `src/fonts/` under the SIL Open Font License 1.1.

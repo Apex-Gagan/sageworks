@@ -10,8 +10,8 @@ type Props = {
   /** Classes for the row that holds the arrow buttons. */
   controlsClassName?: string;
   className?: string;
-  /** Visual style of the arrow buttons: "one" square hairline, "two" round. */
-  tone?: "one" | "two";
+  /** Arrow button style: "one" square hairline, "two" round, "three" 8px corners. */
+  tone?: "one" | "two" | "three";
   /** Accessible name for the strip, e.g. "Selected projects". */
   label: string;
   /**
@@ -171,7 +171,9 @@ export function Scroller({
   const btn =
     tone === "one"
       ? "border border-line text-fg hover:border-fg hover:bg-fg hover:text-bg disabled:hover:border-line disabled:hover:bg-transparent disabled:hover:text-fg"
-      : "rounded-full border border-fg/25 text-fg hover:border-accent hover:bg-accent hover:text-on-accent disabled:hover:border-fg/25 disabled:hover:bg-transparent disabled:hover:text-fg";
+      : tone === "two"
+        ? "rounded-full border border-fg/25 text-fg hover:border-accent hover:bg-accent hover:text-on-accent disabled:hover:border-fg/25 disabled:hover:bg-transparent disabled:hover:text-fg"
+        : "rounded-[8px] border border-line text-fg hover:border-accent hover:bg-accent hover:text-on-accent disabled:hover:border-line disabled:hover:bg-transparent disabled:hover:text-fg";
 
   return (
     <div
