@@ -1,36 +1,43 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Sagework website
 
-## Getting Started
+Two design directions for the Sagework website, each with a homepage, founder page and
+projects page, built with Next.js, TypeScript and Tailwind CSS.
 
-First, run the development server:
+| Page          | Sample 1 "Still" | Sample 2 "Canopy" |
+| ------------- | ---------------- | ----------------- |
+| Homepage      | `/1`             | `/2`              |
+| Founder page  | `/1/founder`     | `/2/founder`      |
+| Projects page | `/1/projects`    | `/2/projects`     |
+
+`/` is an overview that links all six. A small switch at the bottom of every sample page
+flips to the same page in the other sample.
+
+## Run locally
 
 ```bash
+npm install
+cp .env.example .env.local
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Deploy to Vercel
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Import the GitHub repository in Vercel. The Next.js preset needs no changes.
+2. Add the two environment variables from `.env.example`
+   (`NEXT_PUBLIC_SITE_URL` set to the deployment URL, `NEXT_PUBLIC_CONTACT_EMAIL`).
+3. Deploy.
 
-## Learn More
+The samples are marked `noindex` so search engines do not list a draft.
 
-To learn more about Next.js, take a look at the following resources:
+## Editing
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+All text lives in `src/content/`. All photographs live in `public/images/` and are
+placed with the `Pic` component. See `CLAUDE.md` for the full project notes, design
+decisions, conventions and the list of items still needed from the client.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Fonts
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Cormorant Garamond, Bricolage Grotesque, Hanken Grotesk and DM Mono, self-hosted from
+`src/fonts/` under the SIL Open Font License 1.1.

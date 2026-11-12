@@ -1,26 +1,205 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/*
+ * Sagework design tokens.
+ * Each sample is scoped by a class on its layout wrapper:
+ *   .theme-one  Sample 1 "Still"   light, editorial, sharp corners
+ *   .theme-two  Sample 2 "Canopy"  dark, immersive, soft corners
+ * Swap --accent / --fg here once the approved Sagework green is confirmed.
+ */
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --color-deep: var(--deep);
+  --color-on-deep: var(--on-deep);
+  --color-on-deep-muted: var(--on-deep-muted);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  --font-display: var(--display);
+  --font-body: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-dm-mono), ui-monospace, monospace;
+
+  --ease-soft: cubic-bezier(0.16, 1, 0.3, 1);
+  --radius-media: var(--media-radius);
+  --radius-control: var(--control-radius);
+
+  --animate-drift: drift 60s linear infinite;
+  --animate-breathe: breathe 28s ease-in-out infinite alternate;
+
+  @keyframes drift {
+    from {
+      transform: translate3d(0, 0, 0);
+    }
+    to {
+      transform: translate3d(-50%, 0, 0);
+    }
+  }
+  @keyframes breathe {
+    from {
+      transform: scale(1.02);
+    }
+    to {
+      transform: scale(1.12);
+    }
   }
 }
 
+:root {
+  --bg: #f3f4ec;
+  --surface: #e8ebde;
+  --surface-2: #dde2d1;
+  --fg: #1b2a20;
+  --muted: #566557;
+  --line: rgb(27 42 32 / 0.16);
+  --accent: #35543a;
+  --on-accent: #f3f4ec;
+  --deep: #17251c;
+  --on-deep: #eceadd;
+  --on-deep-muted: #a9b3a4;
+  --display: var(--font-cormorant), "Iowan Old Style", Georgia, serif;
+  --media-radius: 0px;
+  --control-radius: 0px;
+}
+
+.theme-one {
+  --bg: #f3f4ec;
+  --surface: #e8ebde;
+  --surface-2: #dde2d1;
+  --fg: #1b2a20;
+  --muted: #566557;
+  --line: rgb(27 42 32 / 0.16);
+  --accent: #35543a;
+  --on-accent: #f3f4ec;
+  --deep: #17251c;
+  --on-deep: #eceadd;
+  --on-deep-muted: #a9b3a4;
+  --display: var(--font-cormorant), "Iowan Old Style", Georgia, serif;
+  --media-radius: 0px;
+  --control-radius: 0px;
+}
+
+.theme-two {
+  --bg: #0d1611;
+  --surface: #14211a;
+  --surface-2: #1b2c22;
+  --fg: #ebe9dc;
+  --muted: #a4ae9f;
+  --line: rgb(235 233 220 / 0.14);
+  --accent: #cfe39a;
+  --on-accent: #10190f;
+  --deep: #080f0b;
+  --on-deep: #ebe9dc;
+  --on-deep-muted: #a4ae9f;
+  --display: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
+  --media-radius: 20px;
+  --control-radius: 999px;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
+  font-feature-settings: "ss01", "kern";
+  text-rendering: optimizeLegibility;
+}
+
+.theme-one,
+.theme-two {
+  background: var(--bg);
+  color: var(--fg);
+  min-height: 100dvh;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* Paper grain. Fixed and non-interactive so it never repaints with scroll. */
+.grain::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.theme-two.grain::after {
+  mix-blend-mode: screen;
+  opacity: 0.045;
+  filter: invert(1);
+}
+
+/* Display type helpers */
+.display {
+  font-family: var(--display);
+  font-optical-sizing: auto;
+}
+.theme-one .display {
+  font-weight: 400;
+  letter-spacing: -0.012em;
+}
+.theme-two .display {
+  font-weight: 500;
+  letter-spacing: -0.035em;
+}
+
+/* Small mono label used for citations and figure captions */
+.label {
+  font-family: var(--font-dm-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* Horizontal scrollers */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Link underline that draws in from the left */
+.link-draw {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-size: 0% 1px;
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  transition: background-size 0.5s var(--ease-soft);
+}
+.link-draw:hover,
+.link-draw:focus-visible {
+  background-size: 100% 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
 }
