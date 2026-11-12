@@ -43,12 +43,12 @@ const samples: Sample[] = [
   },
   {
     id: "3",
-    name: "Folio",
-    line: "Cool porcelain, indigo ink and one vermilion accent. A fixed side rail, leaf-shaped frames, and selectors that let a visitor choose what to read.",
-    references: "Seed for evidence on the page. Aesop for restraint. A gallery catalogue for structure.",
-    type: "Jost with Hanken Grotesk",
-    palette: ["#f5f6f8", "#eaecf1", "#c4472a", "#1a2040"],
-    image: "hospitals/mangalore-shell-lobby",
+    name: "Daylight",
+    line: "White and cream with a teal highlighter. A full-width photo slider, tiles with highlighted titles, giant numbers, photo mosaics and bold centred statements.",
+    references: "Mindvalley for bold statements, mosaics and numbers. Dr Chatterjee for the slider, tiles, teal and warmth.",
+    type: "Google Sans Flex",
+    palette: ["#fdfdfb", "#faf9f3", "#66d3c4", "#1f2a36"],
+    image: "hospitals/whitefield-lobby-rings",
     dark: false,
   },
 ];

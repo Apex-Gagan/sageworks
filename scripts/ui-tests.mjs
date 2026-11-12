@@ -194,51 +194,70 @@ async function scrollers(page, label) {
 /* ------------------------------ Sample 3 home ----------------------------- */
 {
   const { page, errors } = await open("/3");
-  const side = await page.evaluate(() => {
-    const a = document.querySelector("aside");
-    return { shown: a && getComputedStyle(a).display !== "none", links: a?.querySelectorAll("nav a").length };
-  });
-  ok("S3 side rail shows seven links on desktop", side.shown && side.links === 7, JSON.stringify(side));
-
-  const cap0 = await page.evaluate(() => document.querySelector("section [aria-live] p")?.textContent);
-  await page.click('button[aria-label="Next photograph"]');
-  await sleep(500);
-  const cap1 = await page.evaluate(() => document.querySelector("section [aria-live] p")?.textContent);
-  ok("S3 hero next button changes the photograph", cap0 !== cap1, `${cap0} => ${cap1}`);
-  await page.mouse.move(120, 520);
-  await sleep(6600);
-  const cap2 = await page.evaluate(() => document.querySelector("section [aria-live] p")?.textContent);
-  ok("S3 hero advances on its own", cap2 !== cap1, `${cap1} => ${cap2}`);
-
-  await into(page, "#triad-tab-1");
-  await page.click("#triad-tab-1");
-  await sleep(700);
-  await page.keyboard.press("ArrowRight");
-  await sleep(700);
-  const tabs = await page.evaluate(() => ({
-    sel: [...document.querySelectorAll('[id^="triad-tab-"]')].map((t) => t.getAttribute("aria-selected")).join(","),
-    line: document.querySelector("#triad-panel em")?.textContent,
+  const head = await page.evaluate(() => ({
+    links: document.querySelectorAll('header nav[aria-label="Primary"] a').length,
+    tab: !!document.querySelector('a[class*="vertical-rl"]'),
   }));
-  ok("S3 triad tabs respond to click and arrow keys", tabs.sel === "false,false,true" && /repeatedly/.test(tabs.line ?? ""), JSON.stringify(tabs));
+  ok("S3 header shows seven links and the side tab on desktop", head.links === 7 && head.tab, JSON.stringify(head));
+
+  const title = () => page.evaluate(() => document.querySelector('section[aria-roledescription="carousel"] [aria-live]')?.textContent.slice(0, 40));
+  const t0 = await title();
+  await page.click('button[aria-label="Next slide"]');
+  await sleep(1300);
+  const t1 = await title();
+  ok("S3 hero next button changes the slide", t0 !== t1, `${t0} => ${t1}`);
+  await page.mouse.move(700, 30);
+  await sleep(8200);
+  const t2 = await title();
+  ok("S3 hero advances on its own after a click", t2 !== t1, `${t1} => ${t2}`);
 
   const svc = await page.evaluate(async () => {
-    const btns = [...document.querySelectorAll("#work ul button[aria-pressed]")];
-    btns[4].scrollIntoView({ block: "center", behavior: "instant" });
-    btns[4].click();
-    await new Promise((x) => setTimeout(x, 900));
-    const cta = document.querySelector('#work a[href^="mailto:"][class*="bg-fg"]');
-    return { h3: document.querySelector("#work h3")?.textContent, cta: cta?.textContent.trim(), href: decodeURIComponent(cta?.getAttribute("href") ?? "") };
+    const btns = [...document.querySelectorAll("#work li > button[aria-expanded]")];
+    btns[3].scrollIntoView({ block: "center", behavior: "instant" });
+    btns[3].click();
+    await new Promise((x) => setTimeout(x, 800));
+    const link = btns[3].parentElement.querySelector('a[href^="mailto:"]');
+    return {
+      exp: btns.map((b) => b.getAttribute("aria-expanded")).join(","),
+      label: link?.textContent.trim(),
+      href: decodeURIComponent(link?.getAttribute("href") ?? ""),
+    };
   });
-  ok("S3 service selector shows Board Strategy with its own enquiry link", svc.h3 === "Board Strategy" && svc.cta === "Discuss Board Strategy" && svc.href.includes("Enquiry: Board Strategy"), JSON.stringify(svc));
+  ok(
+    "S3 services list opens one service with its own enquiry link",
+    svc.exp === "false,false,false,true,false,false" && svc.label === "Discuss Education and Knowledge" && svc.href.includes("Enquiry: Education and Knowledge"),
+    JSON.stringify(svc),
+  );
 
-  const sen = await page.evaluate(async () => {
-    const btns = [...document.querySelectorAll("#senses button[aria-pressed]")];
+  const sense = await page.evaluate(async () => {
+    const d = document.querySelector("#senses details");
+    d.scrollIntoView({ block: "center", behavior: "instant" });
+    d.querySelector("summary").click();
+    await new Promise((x) => setTimeout(x, 300));
+    return { open: d.open, text: d.textContent };
+  });
+  ok("S3 sense card reveals its cited finding", sense.open && /Source:/.test(sense.text), sense.text.slice(0, 80));
+  await scrollers(page, "S3 home");
+
+  const pr = await page.evaluate(async () => {
+    const next = document.querySelector('button[aria-label="Next principle"]');
+    next.scrollIntoView({ block: "center", behavior: "instant" });
+    const read = () => document.querySelector("figure blockquote")?.textContent;
+    const before = read();
+    next.click();
+    await new Promise((x) => setTimeout(x, 1200));
+    return [before, read()];
+  });
+  ok("S3 principles carousel steps to the next card", pr[0] && pr[1] && pr[0] !== pr[1], pr.join(" => "));
+
+  const acc = await page.evaluate(async () => {
+    const btns = [...document.querySelectorAll("#research ul > li > button[aria-expanded]")];
     btns[1].scrollIntoView({ block: "center", behavior: "instant" });
     btns[1].click();
-    await new Promise((x) => setTimeout(x, 900));
-    return document.querySelector("#senses [aria-live]")?.textContent;
+    await new Promise((x) => setTimeout(x, 700));
+    return btns.map((b) => b.getAttribute("aria-expanded")).join(",");
   });
-  ok("S3 senses sheet shows the cited finding for Sound", /WHO-commissioned/.test(sen ?? "") && /pubmed/.test(sen ?? ""), sen);
+  ok("S3 evidence accordion opens one item at a time", acc === "false,true,false", acc);
 
   const anchors = await page.evaluate(() =>
     ["about", "work", "senses", "gutsy", "research"].filter((id) => !document.getElementById(id)),
@@ -253,14 +272,10 @@ async function scrollers(page, label) {
   const { page, errors } = await open("/3/founder");
   const p = await page.evaluate(() => ({
     missing: ["business-leader", "scientist", "designer", "writer", "dr-gutsy", "global", "lived"].filter((id) => !document.getElementById(id)),
-    active: document.querySelector('aside a[aria-current="page"]')?.textContent.trim(),
+    active: document.querySelector('header a[aria-current="page"]')?.textContent.trim(),
+    h1: document.querySelectorAll("h1").length,
   }));
-  ok("S3 founder chapter anchors exist and rail marks Founder", p.missing.length === 0 && p.active === "Founder", JSON.stringify(p));
-  await into(page, "#lens-tab-2");
-  await page.click("#lens-tab-2");
-  await sleep(700);
-  const l = await page.evaluate(() => document.querySelector("#lens-panel em")?.textContent);
-  ok("S3 founder lens tabs switch", /repeatedly/.test(l ?? ""), l);
+  ok("S3 founder chapter anchors exist and header marks Founder", p.missing.length === 0 && p.active === "Founder" && p.h1 === 1, JSON.stringify(p));
   ok("S3 founder no runtime errors", errors.length === 0, errors.join(" | "));
   await page.close();
 }
@@ -269,32 +284,46 @@ async function scrollers(page, label) {
 {
   const { page, errors } = await open("/3/projects");
   const c = await page.evaluate(async () => {
-    const tabs = [...document.querySelectorAll('#catalogue [role="tab"]')];
+    const tabs = [...document.querySelectorAll('#browse [role="tab"]')];
     const out = [];
     for (const t of tabs) {
+      t.scrollIntoView({ block: "center", behavior: "instant" });
       t.click();
-      await new Promise((x) => setTimeout(x, 900));
-      out.push(document.querySelectorAll("#cat-panel article").length + ":" + document.querySelector("#cat-panel h2")?.textContent.slice(0, 12));
+      await new Promise((x) => setTimeout(x, 700));
+      out.push(document.querySelectorAll("#browse article").length);
     }
     tabs[0].click();
-    await new Promise((x) => setTimeout(x, 900));
+    await new Promise((x) => setTimeout(x, 700));
     return out;
   });
-  ok("S3 projects category tabs show 5, 3, 3 and 1 projects", c.map((v) => v.split(":")[0]).join(",") === "5,3,3,1", c.join(" | "));
-  const th = await page.evaluate(async () => {
-    const art = document.querySelector("#cat-panel article");
-    art.scrollIntoView({ block: "center", behavior: "instant" });
-    const cap = () => art.querySelector("p.text-muted")?.textContent;
-    const before = cap();
-    art.querySelectorAll('button[aria-label^="Show photograph"]')[2].click();
-    await new Promise((x) => setTimeout(x, 900));
-    return [before, cap()];
-  });
-  ok("S3 projects thumbnail changes the large photograph", th[0] !== th[1], th.join(" => "));
+  ok("S3 projects filters show 12, 5, 3, 3 and 1 projects", c.join(",") === "12,5,3,3,1", c.join(","));
+
+  await into(page, "button[data-open]");
+  await sleep(300);
+  await page.click("button[data-open]");
+  await sleep(900);
+  const cap = () => page.evaluate(() => document.querySelector('[role="dialog"] [aria-live]')?.textContent);
+  const v0 = await cap();
+  await page.keyboard.press("ArrowRight");
+  await sleep(700);
+  const v1 = await cap();
+  await page.evaluate(() => document.querySelectorAll('[role="dialog"] [role="group"] button')[3]?.click());
+  await sleep(700);
+  const v2 = await cap();
+  const locked = await page.evaluate(() => document.body.style.overflow);
+  await page.keyboard.press("Escape");
+  await sleep(700);
+  const closed = await page.evaluate(() => !document.querySelector('[role="dialog"]') && document.body.style.overflow === "");
+  ok(
+    "S3 project viewer opens, steps by arrow key and thumbnail, closes with Escape",
+    v0 && v1 && v2 && v0 !== v1 && v1 !== v2 && locked === "hidden" && closed,
+    `${v0} | ${v1} | ${v2} | closed:${closed}`,
+  );
+
   const tn = await page.evaluate(async () => {
     const fig = [...document.querySelectorAll("figure")].find((f) => f.querySelector('[role="group"][aria-label$="then or now"]'));
     fig.scrollIntoView({ block: "center", behavior: "instant" });
-    const label = () => fig.querySelector("[aria-live]")?.textContent;
+    const label = () => fig.querySelector("figcaption [aria-live]")?.textContent;
     const before = label();
     fig.querySelector('button[aria-pressed="false"]').click();
     await new Promise((x) => setTimeout(x, 800));

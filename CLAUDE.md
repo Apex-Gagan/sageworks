@@ -35,7 +35,7 @@ After changing any interactive component, run `npm run test:ui` and add a check 
 | `/2`           | Homepage, Sample 2 "Canopy"                    |
 | `/2/founder`   | Founder page, Sample 2                         |
 | `/2/projects`  | Projects page, Sample 2                        |
-| `/3`           | Homepage, Sample 3 "Folio"                     |
+| `/3`           | Homepage, Sample 3 "Daylight"                  |
 | `/3/founder`   | Founder page, Sample 3                         |
 | `/3/projects`  | Projects page, Sample 3                        |
 
@@ -67,20 +67,27 @@ services as a row of arches, Dr Gutsy's question in a speech bubble, a project l
 with a photograph that follows the pointer, a filterable wall with a lightbox, and a
 giant wordmark closing the footer. Each founder chapter has its own layout.
 
-**Sample 3, "Folio"** leans on Seed, Aesop and a gallery catalogue.
-Cool porcelain, indigo ink, one vermilion accent. Jost headings set light with italic
-emphasis. Structurally different from the other two: a fixed side rail instead of a
-top bar (a top bar with a full-screen menu below 1280px), and selectors that let the
-visitor choose what to read. Its signature shape is the leaf: a frame with two
-opposite corners rounded. Notable pieces: a hero slideshow of the work, the present
-need and SAGE OS (S, A, G, E as the four steps) added from the Discover page, the
-triad as tabs, a mosaic of work, services as a list with a detail panel and a
-"Discuss ..." enquiry link per service, the five senses as a contact sheet with one
-cited finding each, Dr Gutsy's questions on three tilted notes, both white-paper
-series, a project catalogue with a thumbnail viewer per project, and a then/now
-toggle for construction photographs.
+**Sample 3, "Daylight"** is built directly on the two people-facing references,
+mindvalley.com and drchatterjee.com, at the client's request (the first version of
+Sample 3, "Folio", was rejected and replaced).
+White and cream grounds, slate text, Dr Chatterjee's teal as the single accent, and
+Mindvalley's own typeface, Google Sans Flex, set bold. Its signature is the highlighter:
+a teal block behind the key words of a headline (`.hl`). Buttons are pills, photographs
+have 10px corners, and quote cards have one generous corner (`.cut`).
+From Dr Chatterjee: the white header with the current page in a teal block and an
+outlined pill, the full-width photo slider with a centred message, the grid of tiles
+with highlighted titles, the teal band, the quote card with a large corner and side
+arrows, and the fixed tab on the right edge.
+From Mindvalley: bold centred statements, the photo mosaic, giant numbers, the grey
+quote panel, three image cards with a bold title, the dark "what is included" panel
+and pill calls to action.
+Homepage order: slider, six tiles, statement over a mosaic, numbers, three domains,
+services on a slate panel (an accordion with a "Discuss ..." link each), founder with
+credentials, five senses as cards with a cited finding each, Dr Gutsy on the teal band,
+principles carousel, research with both white-paper series and an evidence accordion.
+Projects are a filterable grid of cards; each opens a photo viewer.
 
-All three share Hanken Grotesk for body copy and DM Mono for labels and citations.
+Samples 1 and 2 share Hanken Grotesk for body copy. All three use DM Mono for citations.
 
 ## Where things live
 
@@ -90,7 +97,7 @@ src/
     layout.tsx        root layout, metadata, fonts (robots: noindex while in review)
     fonts.ts          next/font/local definitions
     globals.css       Tailwind import, design tokens, .theme-one / -two / -three scopes,
-                      shape classes (.arch for Sample 2, .leaf for Sample 3)
+                      shape classes (.arch for Sample 2; .hl and .cut for Sample 3)
     page.tsx          overview of the three samples
     1/                Sample 1 routes and layout
     2/                Sample 2 routes and layout
@@ -103,15 +110,16 @@ src/
     two/              Sample 2 nav, footer, ui (Sheet, Arch, Disc, Seal, Glow),
                       Interactive (senses, questions, chapter pills, gallery),
                       Signature (TriadCircles, ProjectList)
-    three/            Sample 3 Sidebar, footer, ui (Box, Leaf, buttons),
-                      Interactive (HeroSlides, TriadTabs, ServiceSelector,
-                      SensesSheet, Catalogue, ThenNow)
+    three/            Sample 3 Header (and SideTab), footer, ui (Wrap3, Pill, Hl,
+                      Heading), Interactive (HeroSlider, ServiceList,
+                      PrincipleCarousel, Accordion, ProjectBrowser, ThenNow)
   content/            ALL copy and data. Edit text here, not in components.
     home.ts           homepage copy (content master, Page 1)
     founder.ts        founder copy (content master, Page 2)
-    discover.ts       supporting copy from Pages 3, 4, 6 and 7: present need,
-                      SAGE OS, where Sagework applies, one cited finding per
-                      sense, the WISE series, per-service enquiry links
+    discover.ts       supporting copy from Pages 3, 4, 6 and 7: one cited finding
+                      per sense, the WISE series, evidence notes, per-service
+                      enquiry links (present need, SAGE OS and sectors are there
+                      too but currently unused)
     projects.ts       projects, categories, project index, collaborators
     captions.ts       alt text and captions for every photograph
     nav.ts            navigation items shared by all samples
@@ -149,11 +157,15 @@ scripts/
   the client compares art-directed looks rather than one design in two modes.
 - **Shape rules.** Sample 1: radius 0 everywhere. Sample 2: full pills for controls;
   photographs in arches, circles or 24px frames; sections as rounded sheets.
-  Sample 3: 8px for controls and ordinary photographs; feature photographs in a leaf.
-- **Emphasis stays in the same typeface.** Sample 1 and 3 use italic, Sample 2 uses a
-  heavier weight (`<strong>`) plus the accent colour. Never mix a second family in.
-- **`--accent-soft`** is the accent to use on deep panels, where the normal accent
-  would not have enough contrast (Sample 3's vermilion on indigo).
+  Sample 3: pill controls, 10px photographs, 12 to 14px panels, quote cards with
+  one large corner (`.cut`).
+- **Emphasis stays in the same typeface.** Sample 1 uses italic, Sample 2 a heavier
+  weight (`<strong>`) plus the accent colour, Sample 3 the highlighter (`<Hl>`). Never
+  mix a second family in. In Sample 3, use the highlighter on roughly one headline per
+  screen, not every heading.
+- **Sample 3's teal is a fill, not a text colour.** `--accent` goes behind dark text
+  (highlighter, pills, tiles). For teal text on white or cream use `--accent-ink`
+  (`text-accent-ink`), which is dark enough to read. White text never sits on teal.
 - **Sticky content inside a Sample 2 `Sheet`** works because the sheet uses
   `overflow-clip`, not `overflow-hidden`. Keep it that way.
 - **Auto-moving pieces pause on hover and on keyboard focus only.** A mouse click on a
@@ -235,6 +247,20 @@ Defined in `.env.example`. Copy to `.env.local` locally; add the same keys in Ve
   width; no runtime errors. The suite found one real flaw, now fixed: clicking the
   hero slideshow's Next button left auto-advance paused.
 
+### 2026-11-12, Sample 3 rebuilt on the Mindvalley and Dr Chatterjee model
+
+- The client did not like the first Sample 3 ("Folio": indigo and vermilion, side
+  rail, leaf frames) and asked for it to follow mindvalley.com and drchatterjee.com.
+- Both sites were studied again in a real browser (homepage, Mindvalley's About page)
+  and Sample 3 was rebuilt from scratch as "Daylight": new palette, Google Sans Flex,
+  top header, slider, tiles, mosaic, numbers, image cards, slate panel, teal band,
+  quote-card carousel, project browser with a photo viewer.
+- Removed: Jost font files, the side rail, the leaf frames and the old Sample 3
+  components. `content/discover.ts` gained the evidence notes.
+- If the dev server keeps serving old styles after files are deleted and recreated,
+  restart it. That happened here and looked like the new palette had not applied.
+- Tests: the Sample 3 checks were rewritten for the new components; 65 checks pass.
+
 ## Open items for the client
 
 - **Professional portraits of Dr Shruti** (2023 to 2025 shoots) were not in the
@@ -254,14 +280,18 @@ Defined in `.env.example`. Copy to `.env.local` locally; add the same keys in Ve
 - **Laboratory and research photographs** requested for the Biology lens were not in
   the folders; Biology currently uses the physiotherapy corridor.
 - LinkedIn URL, Privacy Notice and company footer details are still to be supplied.
-- **Sample 3 shows more than the approved homepage copy.** The present need, SAGE OS,
-  the sector list, the cited findings and the WISE series are the client's own words
-  from other pages of the content master, placed on the homepage. Confirm she is happy
-  for them to appear there.
+- **Sample 3 shows more than the approved homepage copy.** The cited findings for
+  each sense, the WISE series, the evidence notes and the principles carousel (the
+  closing lines of the founder chapters) are the client's own words from other pages
+  of the content master, placed on the homepage. Confirm she is happy with that.
+- **A few short labels in Sample 3 are ours**, not the client's: the hero slide
+  subtitles for projects and the founder, "Principles that guide the work", "Twelve
+  bodies of work, four kinds of place" and the credential bullets (each restates a
+  fact from her founder page). They need her approval.
 - **Two emphasis splits are hard-coded** rather than read from the content files, so
   the accent can fall on the right words: the founder question on the Sample 2
-  homepage and the closing lens line on the Sample 2 and 3 founder pages. If that copy
-  changes, change it in those pages too.
+  homepage and the closing lens line on the Sample 2 and 3 founder pages, plus the
+  highlighted halves of Sample 3's headlines. If that copy changes, change it there too.
 
 ## Before going live
 

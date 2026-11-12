@@ -3,7 +3,7 @@
 Three design directions for the Sagework website, each with a homepage, founder page and
 projects page, built with Next.js, TypeScript and Tailwind CSS.
 
-| Page          | Sample 1 "Still" | Sample 2 "Canopy" | Sample 3 "Folio" |
+| Page          | Sample 1 "Still" | Sample 2 "Canopy" | Sample 3 "Daylight" |
 | ------------- | ---------------- | ----------------- | ---------------- |
 | Homepage      | `/1`             | `/2`              | `/3`             |
 | Founder page  | `/1/founder`     | `/2/founder`      | `/3/founder`     |
@@ -14,8 +14,8 @@ flips to the same page in another sample.
 
 - **Still**: light sage paper, serif headings, quiet and editorial.
 - **Canopy**: dark forest with a marigold accent, circles and arches, immersive.
-- **Folio**: cool porcelain and indigo with a vermilion accent, side navigation,
-  leaf-shaped frames, selectors that let the visitor choose what to read.
+- **Daylight**: white and cream with a teal highlighter, modelled on mindvalley.com
+  and drchatterjee.com: photo slider, tiles, mosaics, giant numbers, bold statements.
 
 ## Run locally
 
@@ -57,5 +57,5 @@ decisions, conventions and the list of items still needed from the client.
 
 ## Fonts
 
-Cormorant Garamond, Bricolage Grotesque, Jost, Hanken Grotesk and DM Mono, self-hosted
+Cormorant Garamond, Bricolage Grotesque, Google Sans Flex, Hanken Grotesk and DM Mono, self-hosted
 from `src/fonts/` under the SIL Open Font License 1.1.

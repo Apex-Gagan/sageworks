@@ -1,34 +1,40 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState, type KeyboardEvent, type ReactNode } from "react";
+import Link from "next/link";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { ArrowLeft, ArrowRight } from "@phosphor-icons/react";
+import { ArrowLeft, ArrowRight, CaretDown, CheckCircle, Images, X } from "@phosphor-icons/react";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
 type Media = { src: string; blur: string; alt: string };
 
 /* -------------------------------------------------------------------------- */
-/* Hero slideshow                                                              */
+/* Hero slider                                                                 */
 /* -------------------------------------------------------------------------- */
 
-export type Slide = Media & { title: string; place: string };
+export type HeroSlide = Media & {
+  /** Headline split so the key words can sit in the highlighter. */
+  pre: string;
+  mark: string;
+  post?: string;
+  sub: string;
+  cta: { label: string; href: string };
+};
 
-const SLIDE_MS = 5600;
+const SLIDE_MS = 7000;
 
 /**
- * Homepage hero: client photographs cross-fade in a leaf frame. The current
- * slide's caption and the controls sit beside it. Pauses on hover and focus,
- * and does not auto-advance under reduced motion.
+ * Full-width photo slider with a centred message on each slide. Pauses while
+ * the pointer rests on it or a keyboard user is on its controls, and does not
+ * move on its own under reduced motion.
  */
-export function HeroSlides({ slides, children }: { slides: Slide[]; children: ReactNode }) {
+export function HeroSlider({ slides }: { slides: HeroSlide[] }) {
   const [i, setI] = useState(0);
   const [hovered, setHovered] = useState(false);
   const [keyboardFocus, setKeyboardFocus] = useState(false);
   const reduce = useReducedMotion();
-  // Hold still while the pointer rests on the photograph or a keyboard user is
-  // on the controls. A mouse click on a control must not pause it for good.
   const auto = !reduce && !hovered && !keyboardFocus;
 
   useEffect(() => {
@@ -38,356 +44,292 @@ export function HeroSlides({ slides, children }: { slides: Slide[]; children: Re
   }, [i, auto, slides.length]);
 
   const go = (dir: number) => setI((v) => (v + dir + slides.length) % slides.length);
-  const current = slides[i];
+  const s = slides[i];
+  const Title = i === 0 ? "h1" : "p";
+  const external = s.cta.href.startsWith("mailto:");
+  const ctaClass =
+    "inline-flex items-center gap-2.5 whitespace-nowrap rounded-full border-[1.5px] border-white px-7 py-3.5 text-[13px] font-semibold uppercase tracking-[0.1em] text-white transition-colors duration-300 hover:bg-white hover:text-[#151b25] active:scale-[0.98]";
 
   return (
-    <div className="grid gap-8 lg:grid-cols-12 lg:grid-rows-[1fr_auto]">
-      <div
-        className="order-2 lg:order-none lg:col-span-8 lg:col-start-1 lg:row-span-2 lg:row-start-1"
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-      >
-        <div className="leaf relative aspect-[4/3] max-h-[56dvh] w-full overflow-hidden bg-surface sm:aspect-[16/10]">
-          {slides.map((s, n) => (
-            <Image
-              key={s.src}
-              src={s.src}
-              alt={n === i ? s.alt : ""}
-              fill
-              preload={n === 0}
-              sizes="(min-width: 1280px) 52vw, (min-width: 1024px) 64vw, 100vw"
-              placeholder="blur"
-              blurDataURL={s.blur}
-              className={`object-cover transition-[opacity,transform] duration-[1400ms] ease-soft ${n === i ? "scale-100 opacity-100" : "scale-[1.04] opacity-0"}`}
-            />
-          ))}
-        </div>
+    <section
+      aria-roledescription="carousel"
+      aria-label="Sagework at a glance"
+      className="relative isolate overflow-hidden bg-deep"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onFocus={(e) => setKeyboardFocus((e.target as HTMLElement).matches(":focus-visible"))}
+      onBlur={() => setKeyboardFocus(false)}
+    >
+      <div className="absolute inset-0 -z-10">
+        {slides.map((slide, n) => (
+          <Image
+            key={slide.src}
+            src={slide.src}
+            alt={n === i ? slide.alt : ""}
+            fill
+            preload={n === 0}
+            sizes="100vw"
+            placeholder="blur"
+            blurDataURL={slide.blur}
+            className={`object-cover transition-[opacity,transform] duration-[1600ms] ease-soft ${n === i ? "scale-100 opacity-100" : "scale-[1.05] opacity-0"}`}
+          />
+        ))}
+        <div className="absolute inset-0 bg-[#10181f]/55" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#10181f]/70 via-transparent to-[#10181f]/25" />
       </div>
 
-      <div className="order-1 lg:order-none lg:col-span-4 lg:col-start-9 lg:row-start-1">{children}</div>
-
-      <div
-        className="order-3 lg:order-none lg:col-span-4 lg:col-start-9 lg:row-start-2 lg:self-end"
-        onFocus={(e) => setKeyboardFocus((e.target as HTMLElement).matches(":focus-visible"))}
-        onBlur={() => setKeyboardFocus(false)}
-      >
-        <div>
-          <div className="min-h-[3.6rem]" aria-live="polite">
-            <p className="display text-[1.35rem] leading-tight">{current.title}</p>
-            <p className="mt-1 text-[13px] text-muted">{current.place}</p>
-          </div>
-          <div className="mt-5 flex items-center gap-4">
-            <div className="flex flex-1 gap-1.5">
-              {slides.map((s, n) => (
-                <button
-                  key={s.src}
-                  type="button"
-                  aria-label={`Show photograph ${n + 1}: ${s.title}`}
-                  aria-pressed={n === i}
-                  onClick={() => setI(n)}
-                  className="group relative h-6 flex-1"
-                >
-                  <span className="absolute inset-x-0 top-1/2 h-[2px] -translate-y-1/2 overflow-hidden bg-fg/15 transition-colors group-hover:bg-fg/35">
-                    {n === i ? (
-                      <span
-                        key={`${i}-${auto}`}
-                        className="absolute inset-0 origin-left bg-accent"
-                        style={auto ? { animation: `progress ${SLIDE_MS}ms linear forwards` } : undefined}
-                      />
-                    ) : null}
-                  </span>
-                </button>
-              ))}
-            </div>
-            <div className="flex gap-1.5">
-              <button
-                type="button"
-                aria-label="Previous photograph"
-                onClick={() => go(-1)}
-                className="grid h-10 w-10 place-items-center rounded-[8px] border border-line transition-colors duration-300 hover:border-accent hover:bg-accent hover:text-on-accent active:translate-y-px"
-              >
-                <ArrowLeft size={16} />
-              </button>
-              <button
-                type="button"
-                aria-label="Next photograph"
-                onClick={() => go(1)}
-                className="grid h-10 w-10 place-items-center rounded-[8px] border border-line transition-colors duration-300 hover:border-accent hover:bg-accent hover:text-on-accent active:translate-y-px"
-              >
-                <ArrowRight size={16} />
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* -------------------------------------------------------------------------- */
-/* Triad tabs                                                                  */
-/* -------------------------------------------------------------------------- */
-
-export type TabItem = Media & { name: string; line: string; body: string; detail?: string };
-
-function useTabKeys(count: number, active: number, set: (n: number) => void) {
-  return (e: KeyboardEvent<HTMLDivElement>) => {
-    if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
-    e.preventDefault();
-    const next = (active + (e.key === "ArrowRight" ? 1 : -1) + count) % count;
-    set(next);
-    const tabs = e.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]');
-    tabs[next]?.focus();
-  };
-}
-
-/** Three domains as tabs over one large photograph and its explanation. */
-export function TriadTabs({ items, id = "triad" }: { items: TabItem[]; id?: string }) {
-  const [active, setActive] = useState(0);
-  const reduce = useReducedMotion();
-  const onKeyDown = useTabKeys(items.length, active, setActive);
-  const current = items[active];
-
-  return (
-    <div>
-      <div role="tablist" aria-label="The three domains" onKeyDown={onKeyDown} className="flex gap-6 border-b border-line md:gap-12">
-        {items.map((item, i) => {
-          const on = i === active;
-          return (
-            <button
-              key={item.name}
-              type="button"
-              role="tab"
-              id={`${id}-tab-${i}`}
-              aria-selected={on}
-              aria-controls={`${id}-panel`}
-              tabIndex={on ? 0 : -1}
-              onClick={() => setActive(i)}
-              className={`display relative -mb-px border-b-2 pb-4 text-[clamp(1.35rem,3.2vw,2.8rem)] leading-none transition-colors duration-300 ${on ? "border-accent text-fg" : "border-transparent text-fg/40 hover:text-fg/75"}`}
-            >
-              {item.name}
-            </button>
-          );
-        })}
-      </div>
-
-      <div
-        id={`${id}-panel`}
-        role="tabpanel"
-        aria-labelledby={`${id}-tab-${active}`}
-        className="mt-10 grid gap-10 lg:grid-cols-12 lg:items-center"
-      >
-        <div className="lg:col-span-7">
-          <div className="leaf relative aspect-[16/11] overflow-hidden bg-surface">
-            {items.map((item, i) => (
-              <Image
-                key={item.src}
-                src={item.src}
-                alt={i === active ? item.alt : ""}
-                fill
-                sizes="(min-width: 1024px) 42vw, 100vw"
-                placeholder="blur"
-                blurDataURL={item.blur}
-                className={`object-cover transition-[opacity,transform] duration-[900ms] ease-soft ${i === active ? "scale-100 opacity-100" : "scale-[1.04] opacity-0"}`}
-              />
-            ))}
-          </div>
-        </div>
-        <div className="min-h-[15rem] lg:col-span-5">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={current.name}
-              initial={reduce ? false : { opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={reduce ? undefined : { opacity: 0, y: -10 }}
-              transition={{ duration: 0.45, ease: EASE }}
-            >
-              <p className="display text-[clamp(1.5rem,2.4vw,2.1rem)] leading-[1.15] text-accent">
-                <em>{current.line}</em>
-              </p>
-              <p className="mt-5 text-[16.5px] leading-relaxed text-fg/85">{current.body}</p>
-              {current.detail ? (
-                <p className="mt-5 border-t border-line pt-5 text-[14.5px] leading-relaxed text-muted">{current.detail}</p>
-              ) : null}
-            </motion.div>
-          </AnimatePresence>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* -------------------------------------------------------------------------- */
-/* Services: list on the left, detail on the right                             */
-/* -------------------------------------------------------------------------- */
-
-export type ServiceItem = Media & { name: string; body: string; outputs: string; href: string };
-
-export function ServiceSelector({ items }: { items: ServiceItem[] }) {
-  const [active, setActive] = useState(0);
-  const reduce = useReducedMotion();
-  const current = items[active];
-
-  return (
-    <div className="grid gap-8 lg:grid-cols-12 lg:gap-12">
-      <ul className="flex flex-wrap gap-2 lg:col-span-4 lg:block">
-        {items.map((item, i) => {
-          const on = i === active;
-          return (
-            <li key={item.name} className="lg:border-t lg:border-line lg:last:border-b">
-              <button
-                type="button"
-                aria-pressed={on}
-                onClick={() => setActive(i)}
-                className={`group flex items-center justify-between gap-4 rounded-[8px] border px-3.5 py-2 text-left transition-colors duration-300 lg:w-full lg:rounded-none lg:border-0 lg:px-0 lg:py-[1.15rem] ${on ? "border-accent bg-accent text-on-accent lg:bg-transparent lg:text-accent" : "border-line text-fg/75 hover:text-fg"}`}
-              >
-                <span className="text-[14px] lg:font-display lg:text-[1.45rem] lg:font-light lg:leading-tight">
-                  {item.name}
-                </span>
-                <ArrowRight
-                  size={17}
-                  className={`hidden shrink-0 transition-[opacity,transform] duration-500 ease-soft lg:block ${on ? "translate-x-0 opacity-100" : "-translate-x-2 opacity-0 group-hover:translate-x-0 group-hover:opacity-60"}`}
-                />
-              </button>
-            </li>
-          );
-        })}
-      </ul>
-
-      <div className="lg:col-span-8">
+      <div className="mx-auto flex min-h-[min(78dvh,760px)] max-w-[1100px] flex-col items-center justify-center px-14 pb-24 pt-16 text-center text-white md:min-h-[min(80dvh,780px)] md:px-24">
         <AnimatePresence mode="wait">
           <motion.div
-            key={current.name}
-            initial={reduce ? false : { opacity: 0, y: 16 }}
+            key={i}
+            initial={reduce ? false : { opacity: 0, y: 22 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={reduce ? undefined : { opacity: 0 }}
-            transition={{ duration: 0.45, ease: EASE }}
-            className="grid gap-8 rounded-[8px] bg-surface p-6 md:grid-cols-2 md:p-9"
+            exit={reduce ? undefined : { opacity: 0, y: -14 }}
+            transition={{ duration: 0.6, ease: EASE }}
+            aria-live="polite"
           >
-            <div className="leaf-sm relative aspect-[4/3] overflow-hidden bg-surface-2 md:aspect-[4/5]">
-              <Image
-                src={current.src}
-                alt={current.alt}
-                fill
-                sizes="(min-width: 1024px) 28vw, 100vw"
-                placeholder="blur"
-                blurDataURL={current.blur}
-                className="object-cover"
-              />
-            </div>
-            <div className="flex flex-col">
-              <h3 className="display text-[clamp(1.8rem,2.8vw,2.5rem)] leading-[1.05]">{current.name}</h3>
-              <p className="mt-5 text-[16px] leading-relaxed text-fg/85">{current.body}</p>
-              <div className="mt-6 border-t border-line pt-5">
-                <p className="font-mono text-[11.5px] uppercase tracking-[0.14em] text-muted">Possible outputs</p>
-                <p className="mt-2 text-[14.5px] leading-relaxed text-fg/75">{current.outputs}</p>
-              </div>
-              <div className="mt-auto pt-8">
-                <a
-                  href={current.href}
-                  className="group inline-flex items-center gap-2.5 whitespace-nowrap rounded-[8px] bg-fg px-5 py-3.5 text-[14px] font-medium text-bg transition-colors duration-300 hover:bg-accent active:translate-y-px"
-                >
-                  <span>Discuss {current.name}</span>
-                  <ArrowRight size={15} weight="bold" className="transition-transform duration-500 group-hover:translate-x-1" />
+            <Title className="display mx-auto max-w-[20ch] text-[clamp(2.2rem,5.2vw,4.5rem)] leading-[1.12]">
+              {s.pre} <span className="hl">{s.mark}</span>
+              {s.post ? ` ${s.post}` : ""}
+            </Title>
+            <p className="mx-auto mt-6 max-w-[52ch] text-[17px] leading-relaxed text-white/90 md:text-[19px]">{s.sub}</p>
+            <div className="mt-9">
+              {external ? (
+                <a href={s.cta.href} className={ctaClass}>
+                  {s.cta.label}
                 </a>
-              </div>
+              ) : (
+                <Link href={s.cta.href} className={ctaClass}>
+                  {s.cta.label}
+                </Link>
+              )}
             </div>
           </motion.div>
         </AnimatePresence>
       </div>
-    </div>
+
+      <button
+        type="button"
+        aria-label="Previous slide"
+        onClick={() => go(-1)}
+        className="absolute left-3 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-white/50 text-white transition-colors duration-300 hover:bg-white hover:text-[#151b25] md:left-8 md:h-12 md:w-12"
+      >
+        <ArrowLeft size={18} />
+      </button>
+      <button
+        type="button"
+        aria-label="Next slide"
+        onClick={() => go(1)}
+        className="absolute right-3 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-white/50 text-white transition-colors duration-300 hover:bg-white hover:text-[#151b25] md:right-8 md:h-12 md:w-12 lg:right-16"
+      >
+        <ArrowRight size={18} />
+      </button>
+
+      <div className="absolute inset-x-0 bottom-7 flex justify-center gap-2">
+        {slides.map((slide, n) => (
+          <button
+            key={slide.src}
+            type="button"
+            aria-label={`Show slide ${n + 1}: ${slide.pre} ${slide.mark}`}
+            aria-pressed={n === i}
+            onClick={() => setI(n)}
+            className="group relative h-6 w-12"
+          >
+            <span className="absolute inset-x-0 top-1/2 h-[3px] -translate-y-1/2 overflow-hidden rounded-full bg-white/35 transition-colors group-hover:bg-white/60">
+              {n === i ? (
+                <span
+                  key={`${i}-${auto}`}
+                  className="absolute inset-0 origin-left rounded-full bg-accent"
+                  style={auto ? { animation: `progress ${SLIDE_MS}ms linear forwards` } : undefined}
+                />
+              ) : null}
+            </span>
+          </button>
+        ))}
+      </div>
+    </section>
   );
 }
 
 /* -------------------------------------------------------------------------- */
-/* Five senses: a contact sheet with one cited finding each                    */
+/* Services list (on the slate panel)                                          */
 /* -------------------------------------------------------------------------- */
 
-export type SenseItem = Media & {
-  name: string;
-  line: string;
-  body: string;
-  finding: string;
-  source: string;
-};
+export type ServiceRow = { name: string; body: string; outputs: string; href: string };
 
-export function SensesSheet({ items }: { items: SenseItem[] }) {
-  const [active, setActive] = useState(0);
-  const reduce = useReducedMotion();
-  const current = items[active];
-
+export function ServiceList({ items }: { items: ServiceRow[] }) {
+  const [open, setOpen] = useState(0);
   return (
-    <div>
-      <div className="grid grid-cols-5 gap-2 md:gap-4">
-        {items.map((item, i) => {
-          const on = i === active;
-          return (
+    <ul>
+      {items.map((item, i) => {
+        const on = i === open;
+        return (
+          <li key={item.name} className="border-b border-white/15 first:border-t">
             <button
-              key={item.name}
               type="button"
-              aria-pressed={on}
-              aria-label={`${item.name}: ${item.line}`}
-              onClick={() => setActive(i)}
-              onMouseEnter={() => setActive(i)}
-              onFocus={() => setActive(i)}
-              className="group text-left"
+              aria-expanded={on}
+              onClick={() => setOpen(on ? -1 : i)}
+              className="group flex w-full items-center gap-4 py-5 text-left"
             >
-              <span
-                className={`leaf-sm relative block aspect-[3/4] overflow-hidden bg-surface transition-[box-shadow] duration-500 ${on ? "shadow-[0_0_0_2px_var(--accent)]" : ""}`}
-              >
-                <Image
-                  src={item.src}
-                  alt=""
-                  fill
-                  sizes="(min-width: 1024px) 14vw, 20vw"
-                  placeholder="blur"
-                  blurDataURL={item.blur}
-                  className={`object-cover transition-[filter,transform,opacity] duration-700 ease-soft ${on ? "scale-100 opacity-100 saturate-100" : "scale-105 opacity-70 saturate-[0.25] group-hover:opacity-100"}`}
-                />
-              </span>
-              <span
-                className={`display mt-3 block text-[clamp(0.95rem,2vw,1.7rem)] leading-none transition-colors duration-300 ${on ? "text-accent" : "text-fg/55"}`}
-              >
+              <CheckCircle size={26} weight="fill" className="shrink-0 text-accent" />
+              <span className="flex-1 text-[clamp(1.15rem,1.7vw,1.45rem)] font-semibold leading-tight tracking-[-0.01em]">
                 {item.name}
               </span>
+              <CaretDown
+                size={18}
+                weight="bold"
+                className={`shrink-0 text-on-deep-muted transition-transform duration-500 ease-soft group-hover:text-white ${on ? "rotate-180" : ""}`}
+              />
             </button>
-          );
-        })}
+            <div className={`grid transition-[grid-template-rows] duration-500 ease-soft ${on ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
+              <div className="overflow-hidden">
+                <div className="pb-7 pl-[42px]">
+                  <p className="text-[16px] leading-relaxed text-on-deep/90">{item.body}</p>
+                  <p className="mt-4 text-[14.5px] leading-relaxed text-on-deep-muted">
+                    <span className="font-semibold text-accent">Possible outputs: </span>
+                    {item.outputs}
+                  </p>
+                  <a
+                    href={item.href}
+                    tabIndex={on ? 0 : -1}
+                    className="group/link mt-5 inline-flex items-center gap-2 whitespace-nowrap rounded-full border border-white/40 px-5 py-2.5 text-[14px] font-semibold transition-colors duration-300 hover:bg-white hover:text-[#151b25]"
+                  >
+                    Discuss {item.name}
+                    <ArrowRight size={15} weight="bold" className="transition-transform duration-500 group-hover/link:translate-x-1" />
+                  </a>
+                </div>
+              </div>
+            </div>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Principles carousel                                                         */
+/* -------------------------------------------------------------------------- */
+
+export type Principle = { role: string; maxim: string; text: string };
+
+/** One card at a time with side arrows, like the endorsement cards it borrows from. */
+export function PrincipleCarousel({ items }: { items: Principle[] }) {
+  const [i, setI] = useState(0);
+  const reduce = useReducedMotion();
+  const go = (dir: number) => setI((v) => (v + dir + items.length) % items.length);
+  const p = items[i];
+
+  return (
+    <div className="relative mx-auto max-w-[1100px]">
+      <div className="mx-auto max-w-[780px] px-12 md:px-16">
+        <AnimatePresence mode="wait">
+          <motion.figure
+            key={i}
+            initial={reduce ? false : { opacity: 0, x: 24 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={reduce ? undefined : { opacity: 0, x: -24 }}
+            transition={{ duration: 0.45, ease: EASE }}
+            className="cut relative bg-bg px-7 pb-10 pt-12 text-center shadow-[0_24px_60px_-30px_rgba(21,27,37,0.35)] md:px-12"
+            aria-live="polite"
+          >
+            <span
+              aria-hidden="true"
+              className="absolute -top-9 left-8 select-none text-[7rem] font-bold leading-none text-fg"
+            >
+              &ldquo;
+            </span>
+            <blockquote className="display text-[clamp(1.35rem,2.4vw,2rem)] leading-[1.25]">{p.text}</blockquote>
+            <figcaption className="mt-7">
+              <span className="hl text-[13px] font-semibold uppercase tracking-[0.1em]">{p.maxim}</span>
+              <span className="mt-3 block text-[14px] text-muted">From her work as {p.role}</span>
+            </figcaption>
+          </motion.figure>
+        </AnimatePresence>
       </div>
 
-      <div className="mt-10 min-h-[17rem] border-t border-line pt-10" aria-live="polite">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={current.name}
-            initial={reduce ? false : { opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={reduce ? undefined : { opacity: 0 }}
-            transition={{ duration: 0.4, ease: EASE }}
-            className="grid gap-8 lg:grid-cols-12"
-          >
-            <div className="lg:col-span-5">
-              <p className="display text-[clamp(1.6rem,2.6vw,2.3rem)] leading-[1.12]">
-                <em>{current.line}</em>
-              </p>
-              <p className="mt-5 text-[16.5px] leading-relaxed text-fg/85">{current.body}</p>
-            </div>
-            <div className="rounded-[8px] bg-tint p-6 md:p-8 lg:col-span-6 lg:col-start-7">
-              <p className="font-mono text-[11.5px] uppercase tracking-[0.14em] text-accent">What the evidence shows</p>
-              <p className="mt-4 text-[16px] leading-relaxed text-fg">{current.finding}</p>
-              <p className="mt-5 font-mono text-[12px] text-muted">Source: {current.source}</p>
-            </div>
-          </motion.div>
-        </AnimatePresence>
+      <button
+        type="button"
+        aria-label="Previous principle"
+        onClick={() => go(-1)}
+        className="absolute left-0 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-line text-fg transition-colors duration-300 hover:bg-fg hover:text-bg"
+      >
+        <ArrowLeft size={18} />
+      </button>
+      <button
+        type="button"
+        aria-label="Next principle"
+        onClick={() => go(1)}
+        className="absolute right-0 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-line text-fg transition-colors duration-300 hover:bg-fg hover:text-bg"
+      >
+        <ArrowRight size={18} />
+      </button>
+
+      <div className="mt-8 flex justify-center gap-2">
+        {items.map((it, n) => (
+          <button
+            key={it.maxim}
+            type="button"
+            aria-label={`Show principle ${n + 1}`}
+            aria-pressed={n === i}
+            onClick={() => setI(n)}
+            className={`h-2.5 rounded-full transition-all duration-500 ease-soft ${n === i ? "w-8 bg-accent" : "w-2.5 bg-fg/20 hover:bg-fg/40"}`}
+          />
+        ))}
       </div>
     </div>
   );
 }
 
 /* -------------------------------------------------------------------------- */
-/* Projects catalogue                                                          */
+/* Accordion                                                                   */
 /* -------------------------------------------------------------------------- */
 
-export type CaseItem = {
+export type AccordionItem = { title: string; sub?: string; body: string };
+
+export function Accordion({ items }: { items: AccordionItem[] }) {
+  const [open, setOpen] = useState(0);
+  return (
+    <ul>
+      {items.map((item, i) => {
+        const on = i === open;
+        return (
+          <li key={item.title} className="border-b border-line first:border-t">
+            <button
+              type="button"
+              aria-expanded={on}
+              onClick={() => setOpen(on ? -1 : i)}
+              className="group flex w-full items-center justify-between gap-6 py-6 text-left"
+            >
+              <span>
+                <span className="block text-[clamp(1.15rem,1.8vw,1.5rem)] font-semibold leading-tight tracking-[-0.01em]">
+                  {item.title}
+                </span>
+                {item.sub ? <span className="mt-1 block text-[15px] text-muted">{item.sub}</span> : null}
+              </span>
+              <span
+                className={`grid h-10 w-10 shrink-0 place-items-center rounded-full transition-colors duration-300 ${on ? "bg-accent text-on-accent" : "bg-surface-2 text-fg group-hover:bg-tint"}`}
+              >
+                <CaretDown size={17} weight="bold" className={`transition-transform duration-500 ease-soft ${on ? "rotate-180" : ""}`} />
+              </span>
+            </button>
+            <div className={`grid transition-[grid-template-rows] duration-500 ease-soft ${on ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
+              <div className="overflow-hidden">
+                <p className="max-w-[72ch] pb-7 text-[16.5px] leading-relaxed text-fg/80">{item.body}</p>
+              </div>
+            </div>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Project browser: filter, cards, and a photo viewer                          */
+/* -------------------------------------------------------------------------- */
+
+export type ProjectCard = {
   slug: string;
   title: string;
   place: string;
@@ -395,136 +337,227 @@ export type CaseItem = {
   body: string;
   credit?: string;
   category: string;
+  categoryLabel: string;
   images: Media[];
 };
 
-function Case({ p }: { p: CaseItem }) {
+function Viewer({ p, onClose }: { p: ProjectCard; onClose: () => void }) {
   const [sel, setSel] = useState(0);
   const reduce = useReducedMotion();
+  const closeRef = useRef<HTMLButtonElement>(null);
   const current = p.images[sel];
 
+  const step = useCallback(
+    (dir: number) => setSel((v) => (v + dir + p.images.length) % p.images.length),
+    [p.images.length],
+  );
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowRight") step(1);
+      if (e.key === "ArrowLeft") step(-1);
+    };
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    closeRef.current?.focus();
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [onClose, step]);
+
   return (
-    <article className="grid gap-10 border-t border-line py-14 md:py-20 lg:grid-cols-12">
-      <div className="lg:col-span-7">
-        <div className="leaf relative aspect-[16/11] overflow-hidden bg-surface">
-          <AnimatePresence initial={false}>
-            <motion.div
-              key={current.src}
-              initial={reduce ? false : { opacity: 0, scale: 1.03 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.7, ease: EASE }}
-              className="absolute inset-0"
-            >
-              <Image
-                src={current.src}
-                alt={current.alt}
-                fill
-                sizes="(min-width: 1024px) 44vw, 100vw"
-                placeholder="blur"
-                blurDataURL={current.blur}
-                className="object-cover"
-              />
-            </motion.div>
-          </AnimatePresence>
-        </div>
-        <p className="mt-3 min-h-[2.2em] text-[12.5px] leading-snug text-muted">{current.alt}.</p>
-        <div className="mt-2 flex flex-wrap gap-2" role="group" aria-label={`Photographs of ${p.title}`}>
-          {p.images.map((im, i) => (
+    <motion.div
+      role="dialog"
+      aria-modal="true"
+      aria-label={`${p.title}: photographs`}
+      className="fixed inset-0 z-[70] overflow-y-auto bg-[#10181f]/80 p-3 backdrop-blur-sm md:p-8"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.25 }}
+      onClick={onClose}
+    >
+      <motion.div
+        initial={reduce ? false : { opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={reduce ? undefined : { opacity: 0, y: 20 }}
+        transition={{ duration: 0.45, ease: EASE }}
+        className="relative mx-auto grid max-w-[1180px] gap-6 rounded-[16px] bg-bg p-4 md:p-7 lg:grid-cols-12 lg:gap-8"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          ref={closeRef}
+          type="button"
+          aria-label="Close photographs"
+          onClick={onClose}
+          className="absolute right-3 top-3 z-10 grid h-11 w-11 place-items-center rounded-full bg-fg text-bg transition-colors duration-300 hover:bg-accent hover:text-on-accent md:right-5 md:top-5"
+        >
+          <X size={18} weight="bold" />
+        </button>
+
+        <div className="lg:col-span-8">
+          <div className="relative aspect-[4/3] overflow-hidden rounded-[10px] bg-surface-2">
+            <AnimatePresence initial={false}>
+              <motion.div
+                key={current.src}
+                initial={reduce ? false : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.5 }}
+                className="absolute inset-0"
+              >
+                <Image
+                  src={current.src}
+                  alt={current.alt}
+                  fill
+                  sizes="(min-width: 1024px) 760px, 100vw"
+                  placeholder="blur"
+                  blurDataURL={current.blur}
+                  className="object-cover"
+                />
+              </motion.div>
+            </AnimatePresence>
             <button
-              key={im.src}
               type="button"
-              aria-label={`Show photograph ${i + 1}: ${im.alt}`}
-              aria-pressed={i === sel}
-              onClick={() => setSel(i)}
-              className={`relative h-16 w-16 overflow-hidden rounded-[6px] bg-surface transition-[box-shadow,opacity] duration-300 sm:h-[72px] sm:w-[72px] ${i === sel ? "shadow-[0_0_0_2px_var(--accent)]" : "opacity-70 hover:opacity-100"}`}
+              aria-label="Previous photograph"
+              onClick={() => step(-1)}
+              className="absolute left-3 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-bg/90 text-fg transition-colors duration-300 hover:bg-accent"
             >
-              <Image src={im.src} alt="" fill sizes="72px" placeholder="blur" blurDataURL={im.blur} className="object-cover" />
+              <ArrowLeft size={18} />
             </button>
-          ))}
+            <button
+              type="button"
+              aria-label="Next photograph"
+              onClick={() => step(1)}
+              className="absolute right-3 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-bg/90 text-fg transition-colors duration-300 hover:bg-accent"
+            >
+              <ArrowRight size={18} />
+            </button>
+          </div>
+          <p className="mt-3 min-h-[1.5em] text-[13.5px] text-muted" aria-live="polite">
+            {current.alt}.
+          </p>
+          <div className="mt-2 flex flex-wrap gap-2" role="group" aria-label="Choose a photograph">
+            {p.images.map((im, n) => (
+              <button
+                key={im.src}
+                type="button"
+                aria-label={`Show photograph ${n + 1}: ${im.alt}`}
+                aria-pressed={n === sel}
+                onClick={() => setSel(n)}
+                className={`relative h-14 w-14 overflow-hidden rounded-[8px] bg-surface-2 transition-[box-shadow,opacity] duration-300 sm:h-16 sm:w-16 ${n === sel ? "shadow-[0_0_0_3px_var(--accent)]" : "opacity-65 hover:opacity-100"}`}
+              >
+                <Image src={im.src} alt="" fill sizes="64px" placeholder="blur" blurDataURL={im.blur} className="object-cover" />
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
-      <div className="lg:col-span-4 lg:col-start-9">
-        <p className="text-[13.5px] text-muted">{p.place}</p>
-        <h3 className="display mt-3 text-[clamp(1.9rem,3vw,2.8rem)] leading-[1.06]">{p.title}</h3>
-        <p className="display mt-3 text-[1.35rem] leading-snug text-accent">
-          <em>{p.theme}</em>
-        </p>
-        <p className="mt-6 text-[16px] leading-relaxed text-fg/85">{p.body}</p>
-        {p.credit ? <p className="mt-6 border-t border-line pt-4 text-[13.5px] text-muted">{p.credit}</p> : null}
-      </div>
-    </article>
+
+        <div className="lg:col-span-4 lg:pr-10 lg:pt-12">
+          <span className="rounded-full bg-tint px-3 py-1.5 text-[12px] font-semibold uppercase tracking-[0.08em] text-accent-ink">
+            {p.categoryLabel}
+          </span>
+          <h3 className="display mt-5 text-[clamp(1.7rem,2.6vw,2.3rem)] leading-[1.12]">{p.title}</h3>
+          <p className="mt-2 text-[15px] text-muted">{p.place}</p>
+          <p className="mt-5 text-[17px] font-semibold leading-snug">
+            <span className="hl">{p.theme}</span>
+          </p>
+          <p className="mt-5 text-[16px] leading-relaxed text-fg/80">{p.body}</p>
+          {p.credit ? <p className="mt-6 border-t border-line pt-4 text-[14px] text-muted">{p.credit}</p> : null}
+        </div>
+      </motion.div>
+    </motion.div>
   );
 }
 
-/**
- * Projects by category. Each project is a small viewer: choose a thumbnail to
- * change the large photograph.
- */
-export function Catalogue({
-  categories,
+export function ProjectBrowser({
+  filters,
   projects,
 }: {
-  categories: { id: string; label: string; title: string; intro: string }[];
-  projects: CaseItem[];
+  filters: { id: string; label: string }[];
+  projects: ProjectCard[];
 }) {
-  const [cat, setCat] = useState(categories[0].id);
+  const [filter, setFilter] = useState("all");
+  const [openSlug, setOpenSlug] = useState<string | null>(null);
   const reduce = useReducedMotion();
-  const index = categories.findIndex((c) => c.id === cat);
-  const onKeyDown = useTabKeys(categories.length, index, (n) => setCat(categories[n].id));
-  const current = categories[index];
-  const list = projects.filter((p) => p.category === cat);
+  const shown = filter === "all" ? projects : projects.filter((p) => p.category === filter);
+  const active = projects.find((p) => p.slug === openSlug) ?? null;
+  const close = useCallback(() => setOpenSlug(null), []);
 
   return (
     <div>
-      <div
-        role="tablist"
-        aria-label="Project categories"
-        onKeyDown={onKeyDown}
-        className="flex flex-wrap gap-2"
-      >
-        {categories.map((c) => {
-          const on = c.id === cat;
-          const count = projects.filter((p) => p.category === c.id).length;
+      <div role="tablist" aria-label="Filter projects" className="flex flex-wrap justify-center gap-2">
+        {[{ id: "all", label: "All projects" }, ...filters].map((f) => {
+          const on = f.id === filter;
+          const count = f.id === "all" ? projects.length : projects.filter((p) => p.category === f.id).length;
           return (
             <button
-              key={c.id}
+              key={f.id}
               type="button"
               role="tab"
-              id={`cat-tab-${c.id}`}
               aria-selected={on}
-              aria-controls="cat-panel"
-              tabIndex={on ? 0 : -1}
-              onClick={() => setCat(c.id)}
-              className={`whitespace-nowrap rounded-[8px] border px-4 py-2.5 text-[14px] transition-colors duration-300 active:translate-y-px ${on ? "border-fg bg-fg text-bg" : "border-line text-fg/80 hover:border-fg hover:text-fg"}`}
+              onClick={() => setFilter(f.id)}
+              className={`whitespace-nowrap rounded-full px-5 py-2.5 text-[14.5px] font-semibold transition-colors duration-300 active:scale-[0.98] ${on ? "bg-fg text-bg" : "bg-surface-2 text-fg/80 hover:bg-tint hover:text-fg"}`}
             >
-              {c.label}
-              <span className={`ml-2 font-mono text-[11.5px] ${on ? "text-bg/70" : "text-muted"}`}>{count}</span>
+              {f.label}
+              <span className={`ml-2 text-[12.5px] font-normal ${on ? "text-bg/70" : "text-muted"}`}>{count}</span>
             </button>
           );
         })}
       </div>
 
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={cat}
-          id="cat-panel"
-          role="tabpanel"
-          aria-labelledby={`cat-tab-${cat}`}
-          initial={reduce ? false : { opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={reduce ? undefined : { opacity: 0 }}
-          transition={{ duration: 0.45, ease: EASE }}
-        >
-          <div className="grid gap-6 pb-12 pt-14 lg:grid-cols-12 lg:items-end">
-            <h2 className="display text-[clamp(2.2rem,4.4vw,4rem)] leading-[1.04] lg:col-span-7">{current.title}</h2>
-            <p className="text-[16px] leading-relaxed text-fg/80 lg:col-span-4 lg:col-start-9">{current.intro}</p>
-          </div>
-          {list.map((p) => (
-            <Case key={p.slug} p={p} />
-          ))}
-        </motion.div>
-      </AnimatePresence>
+      <div className="mt-10 grid gap-x-7 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+        {shown.map((p, i) => (
+          <motion.article
+            key={`${filter}-${p.slug}`}
+            initial={reduce ? false : { opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.15 }}
+            transition={{ duration: 0.6, ease: EASE, delay: (i % 3) * 0.06 }}
+            className="flex flex-col"
+          >
+            <button
+              type="button"
+              onClick={() => setOpenSlug(p.slug)}
+              aria-label={`Open photographs of ${p.title}`}
+              className="group relative block aspect-[3/2] overflow-hidden rounded-[10px] bg-surface-2 text-left"
+            >
+              <Image
+                src={p.images[0].src}
+                alt={p.images[0].alt}
+                fill
+                sizes="(min-width: 1024px) 380px, (min-width: 640px) 50vw, 100vw"
+                placeholder="blur"
+                blurDataURL={p.images[0].blur}
+                className="object-cover transition-transform duration-[1200ms] ease-soft group-hover:scale-[1.05]"
+              />
+              <span className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-full bg-bg/95 px-3 py-1.5 text-[12.5px] font-semibold text-fg">
+                <Images size={15} weight="bold" />
+                {p.images.length}
+              </span>
+            </button>
+            <p className="mt-5 text-[12px] font-semibold uppercase tracking-[0.08em] text-accent-ink">{p.categoryLabel}</p>
+            <h3 className="display mt-2 text-[1.55rem] leading-[1.15]">{p.title}</h3>
+            <p className="mt-1.5 text-[15px] text-muted">{p.theme}</p>
+            <p className="mt-3 text-[15.5px] leading-relaxed text-fg/80">{p.body}</p>
+            <div className="mt-auto pt-5">
+              <button
+                type="button"
+                onClick={() => setOpenSlug(p.slug)}
+                data-open={p.slug}
+                className="group/btn inline-flex items-center gap-2 whitespace-nowrap rounded-full border-[1.5px] border-fg px-5 py-2.5 text-[14px] font-semibold transition-colors duration-300 hover:bg-fg hover:text-bg active:scale-[0.98]"
+              >
+                View photographs
+                <ArrowRight size={15} weight="bold" className="transition-transform duration-500 group-hover/btn:translate-x-1" />
+              </button>
+            </div>
+          </motion.article>
+        ))}
+      </div>
+
+      <AnimatePresence>{active ? <Viewer key={active.slug} p={active} onClose={close} /> : null}</AnimatePresence>
     </div>
   );
 }
@@ -546,7 +579,7 @@ export function ThenNow({ item }: { item: ThenNowItem }) {
 
   return (
     <figure>
-      <div className="leaf-sm relative aspect-[4/3] overflow-hidden bg-surface">
+      <div className="relative aspect-[4/3] overflow-hidden rounded-[10px] bg-surface-2">
         {[item.before, item.after].map((im, i) => {
           const on = (i === 1) === now;
           return (
@@ -555,35 +588,37 @@ export function ThenNow({ item }: { item: ThenNowItem }) {
               src={im.src}
               alt={on ? im.alt : ""}
               fill
-              sizes="(min-width: 1024px) 30vw, 100vw"
+              sizes="(min-width: 768px) 400px, 100vw"
               placeholder="blur"
               blurDataURL={im.blur}
-              className={`object-cover transition-[opacity,filter] duration-700 ease-soft ${on ? "opacity-100" : "opacity-0"} ${i === 0 ? "saturate-[0.8]" : ""}`}
+              className={`object-cover transition-opacity duration-700 ease-soft ${on ? "opacity-100" : "opacity-0"}`}
             />
           );
         })}
+        <div
+          className="absolute left-3 top-3 flex rounded-full bg-bg/95 p-1"
+          role="group"
+          aria-label={`${item.title}: then or now`}
+        >
+          {[
+            { label: "Then", value: false },
+            { label: "Now", value: true },
+          ].map((o) => (
+            <button
+              key={o.label}
+              type="button"
+              aria-pressed={now === o.value}
+              onClick={() => setNow(o.value)}
+              className={`rounded-full px-4 py-1.5 text-[13px] font-semibold transition-colors duration-300 ${now === o.value ? "bg-accent text-on-accent" : "text-fg/70 hover:text-fg"}`}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
       </div>
       <figcaption className="mt-4">
-        <div className="flex items-center justify-between gap-4">
-          <p className="display text-[1.4rem] leading-tight">{item.title}</p>
-          <div className="flex rounded-[8px] border border-line p-0.5" role="group" aria-label={`${item.title}: then or now`}>
-            {[
-              { label: "Then", value: false },
-              { label: "Now", value: true },
-            ].map((o) => (
-              <button
-                key={o.label}
-                type="button"
-                aria-pressed={now === o.value}
-                onClick={() => setNow(o.value)}
-                className={`rounded-[6px] px-3.5 py-1.5 text-[13px] transition-colors duration-300 ${now === o.value ? "bg-fg text-bg" : "text-fg/70 hover:text-fg"}`}
-              >
-                {o.label}
-              </button>
-            ))}
-          </div>
-        </div>
-        <p className="mt-2 text-[13.5px] text-muted" aria-live="polite">
+        <p className="display text-[1.35rem] leading-tight">{item.title}</p>
+        <p className="mt-1.5 text-[14.5px] text-muted" aria-live="polite">
           {shown.label}
         </p>
       </figcaption>

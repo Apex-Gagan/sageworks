@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
-import { Pic, imageData } from "@/components/shared/Pic";
+import { Pic } from "@/components/shared/Pic";
 import { Reveal } from "@/components/shared/Motion";
-import { TriadTabs, type TabItem } from "@/components/three/Interactive";
-import { Box, ButtonThree, Fig, Leaf, LinkThree } from "@/components/three/ui";
+import { Heading, Hl, Pill, Small, Wrap3 } from "@/components/three/ui";
 import { captions, type ImageKey } from "@/content/captions";
 import { chapters, founderHero, lenses, type Chapter } from "@/content/founder";
-import { research } from "@/content/home";
+import { proof, research } from "@/content/home";
 import { resolve } from "@/content/nav";
 
 export const metadata: Metadata = {
@@ -14,296 +13,248 @@ export const metadata: Metadata = {
     "Dr Shruti Pai is a business leader, clinical nutrition scientist, gut microbiome researcher and human systems designer.",
 };
 
-const by = Object.fromEntries(chapters.map((c) => [c.id, c])) as Record<string, Chapter>;
+/** Two photographs per chapter keeps the story moving without crowding it. */
+const chapterImages: Record<string, ImageKey[]> = {
+  "business-leader": ["hospitality/chef-van-team", "founder/chef-on-wheels-kitchen"],
+  scientist: ["hospitals/tree-of-life-front", "hospitals/physio-get-set-go"],
+  designer: ["hospitals/mangalore-shell-lobby", "academic/marc-auditorium"],
+  writer: ["founder/team-table"],
+  "dr-gutsy": [],
+  global: ["hospitals/malaysia-mural", "academic/msap-aerial-mist"],
+  lived: ["founder/site-foundation", "founder/mosaic-wall"],
+};
 
 const lensImages: ImageKey[] = [
   "hospitals/physio-figures",
   "academic/msap-terrace-steps",
   "academic/msap-courtyard",
 ];
-const lensItems: TabItem[] = lenses.items.map((l, i) => {
-  const d = imageData(lensImages[i]);
-  return { name: l.name, line: l.line, body: l.body, src: d.src, blur: d.blur, alt: d.alt };
-});
 
-/** Chapter heading: the role on the left, its maxim on the right. */
-function Head({ c }: { c: Chapter }) {
+function ChapterBlock({ c, tone }: { c: Chapter; tone: "bg" | "surface" }) {
+  const images = chapterImages[c.id] ?? [];
+  const chips = c.facts?.every((f) => !f.label);
   return (
-    <Reveal className="grid gap-4 border-t border-fg pt-6 lg:grid-cols-12 lg:items-baseline">
-      <div className="lg:col-span-7">
-        <h2 className="display text-[clamp(2.3rem,4.4vw,4.2rem)] leading-[1.02]">{c.role}</h2>
-        <p className="mt-2 text-[15.5px] text-muted">{c.title}</p>
-      </div>
-      <p className="display text-[clamp(1.4rem,2.2vw,2rem)] leading-[1.15] text-accent lg:col-span-5 lg:text-right">
-        <em>{c.maxim}</em>
-      </p>
-    </Reveal>
-  );
-}
-
-function Paras({ c, className = "" }: { c: Chapter; className?: string }) {
-  return (
-    <Reveal className={`space-y-5 text-[16.5px] leading-relaxed text-fg/85 ${className}`} delay={0.06}>
-      {c.body.map((p) => (
-        <p key={p}>{p}</p>
-      ))}
-      {c.link ? (
-        <div className="pt-2">
-          <LinkThree href={resolve("/3", c.link.href)}>{c.link.label}</LinkThree>
-        </div>
-      ) : null}
-    </Reveal>
-  );
-}
-
-function Pull({ c }: { c: Chapter }) {
-  if (!c.pull) return null;
-  return (
-    <Reveal className="leaf-sm mt-12 bg-tint p-7 md:p-10">
-      {c.pullLead ? <p className="max-w-[56ch] text-[14.5px] text-fg/70">{c.pullLead}</p> : null}
-      <p className="display mt-3 max-w-[30ch] text-[clamp(1.6rem,2.8vw,2.6rem)] leading-[1.14]">{c.pull}</p>
-    </Reveal>
-  );
-}
-
-export default function FounderThree() {
-  const business = by["business-leader"];
-  const scientist = by["scientist"];
-  const designer = by["designer"];
-  const writer = by["writer"];
-  const gutsy = by["dr-gutsy"];
-  const global = by["global"];
-  const lived = by["lived"];
-
-  return (
-    <>
-      {/* Hero: portrait first, then the name */}
-      <section>
-        <Box className="grid gap-10 pb-16 pt-10 md:pb-24 lg:grid-cols-12 lg:items-end xl:pt-14">
-          <div className="lg:col-span-5">
-            <Leaf
-              k={founderHero.portrait}
-              ratio="4 / 5"
-              sizes="(min-width: 1024px) 32vw, 100vw"
-              preload
-              pos="50% 16%"
-              className="max-h-[76dvh]"
-            />
-            <Fig>Reviewing artwork studies in the design studio.</Fig>
-          </div>
-          <div className="lg:col-span-7">
-            <p className="label text-muted">{founderHero.title}</p>
-            <h1 className="display mt-5 text-[clamp(3.4rem,7.6vw,7.75rem)] leading-[0.94]">
-              Dr Shruti <em className="text-accent">Pai</em>
-            </h1>
-            <ul className="mt-8 grid grid-cols-2 gap-x-8 text-[14.5px]">
-              {founderHero.roles.map((r) => (
-                <li key={r} className="border-t border-line py-3 text-fg/85">
-                  {r}
-                </li>
-              ))}
-            </ul>
-            <p className="mt-8 max-w-[44ch] text-[16px] leading-relaxed text-muted">{founderHero.lead}</p>
-            <p className="display mt-2 text-[clamp(1.8rem,3vw,2.8rem)] leading-[1.12]">
-              <em>{founderHero.question}</em>
+    <section id={c.id} className={`scroll-mt-24 ${tone === "surface" ? "bg-surface" : ""}`}>
+      <Wrap3 className="grid gap-10 py-16 md:py-24 lg:grid-cols-12">
+        <div className="lg:col-span-4">
+          <Reveal className="lg:sticky lg:top-28">
+            <h2 className="display text-[clamp(2rem,3.4vw,2.9rem)] leading-[1.1]">{c.role}</h2>
+            <p className="mt-2 text-[16px] text-muted">{c.title}</p>
+            <p className="mt-6 text-[clamp(1.2rem,1.9vw,1.55rem)] font-semibold leading-[1.5]">
+              <Hl>{c.maxim}</Hl>
             </p>
-          </div>
-        </Box>
-      </section>
-
-      {/* Introduction as three columns */}
-      <section className="bg-surface">
-        <Box className="grid gap-8 py-16 md:grid-cols-3 md:py-24">
-          {founderHero.intro.map((p, i) => (
-            <Reveal key={p} delay={i * 0.07} className="border-t border-fg pt-5">
-              <p className={i === 0 ? "display text-[1.6rem] leading-[1.25]" : "text-[16.5px] leading-relaxed text-fg/80"}>{p}</p>
-            </Reveal>
-          ))}
-        </Box>
-      </section>
-
-      {/* Business Leader: text beside a ledger, then three photographs */}
-      <section id={business.id} className="scroll-mt-20">
-        <Box className="py-20 md:py-28">
-          <Head c={business} />
-          <div className="mt-10 grid gap-10 lg:grid-cols-12">
-            <Paras c={business} className="lg:col-span-7" />
-            <Reveal className="lg:col-span-4 lg:col-start-9" delay={0.1}>
-              <dl className="leaf-sm bg-deep p-8 text-on-deep">
-                {(business.facts ?? []).map((f, i) => (
-                  <div key={f.value} className={i > 0 ? "mt-7 border-t border-on-deep/20 pt-7" : ""}>
-                    <dt className="display text-[clamp(2.4rem,3.8vw,3.4rem)] leading-none text-accent-soft">{f.value}</dt>
-                    <dd className="mt-2 text-[14px] text-on-deep-muted">{f.label}</dd>
-                  </div>
-                ))}
-              </dl>
-            </Reveal>
-          </div>
-          <Reveal className="mt-12 grid gap-4 sm:grid-cols-12">
-            <figure className="sm:col-span-7">
-              <Leaf k="hospitality/chef-van-team" ratio="16 / 10" sizes="(min-width: 640px) 40vw, 100vw" />
-              <Fig>{captions["hospitality/chef-van-team"]}.</Fig>
-            </figure>
-            <figure className="sm:col-span-5">
-              <div className="grid grid-cols-2 gap-4">
-                <Pic k="founder/chef-on-wheels-kitchen" ratio="3 / 4" sizes="18vw" pos="38% 30%" />
-                <Pic k="hospitality/chef-van-serving" ratio="3 / 4" sizes="18vw" pos="70% 40%" />
-              </div>
-              <Fig>Inside the kitchen, and serving from the van.</Fig>
-            </figure>
           </Reveal>
-          <Pull c={business} />
-        </Box>
-      </section>
+        </div>
 
-      {/* Scientist: credentials and publications set as a record */}
-      <section id={scientist.id} className="scroll-mt-20 bg-surface">
-        <Box className="py-20 md:py-28">
-          <Head c={scientist} />
-          <div className="mt-10 grid gap-10 lg:grid-cols-12">
-            <div className="lg:col-span-5">
-              <Paras c={scientist} />
-            </div>
-            <Reveal className="lg:col-span-6 lg:col-start-7" delay={0.1}>
-              <dl className="rounded-[8px] bg-bg p-7 md:p-9">
-                {(scientist.facts ?? []).map((f, i) => (
+        <div className="lg:col-span-7 lg:col-start-6">
+          <Reveal className="space-y-5 text-[17px] leading-relaxed text-fg/80">
+            {c.body.map((p) => (
+              <p key={p}>{p}</p>
+            ))}
+          </Reveal>
+
+          {c.facts && chips ? (
+            <Reveal>
+              <ul className="mt-8 flex flex-wrap gap-2">
+                {c.facts.map((f) => (
+                  <li key={f.value} className="rounded-full bg-tint px-4 py-2 text-[15px] font-semibold text-accent-ink">
+                    {f.value}
+                  </li>
+                ))}
+              </ul>
+            </Reveal>
+          ) : null}
+
+          {c.facts && !chips ? (
+            <Reveal>
+              <dl className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {c.facts.map((f, i) => (
                   <div
-                    key={f.value}
-                    className={`grid grid-cols-[7.5rem_1fr] items-baseline gap-4 py-4 ${i > 0 ? "border-t border-line" : ""}`}
+                    key={f.value + f.label}
+                    className={`rounded-[12px] px-5 py-5 ${i === 0 ? "bg-accent text-on-accent" : tone === "surface" ? "bg-bg" : "bg-surface-2"}`}
                   >
-                    <dt className="display text-[1.9rem] leading-none text-accent">{f.value}</dt>
-                    <dd className="text-[15.5px]">{f.label}</dd>
+                    <dt className="display text-[clamp(1.7rem,2.6vw,2.3rem)] leading-none">{f.value}</dt>
+                    <dd className={`mt-2 text-[14px] leading-snug ${i === 0 ? "text-on-accent/80" : "text-muted"}`}>{f.label}</dd>
                   </div>
                 ))}
               </dl>
-              <p className="mt-8 text-[14px] text-muted">Peer-reviewed publications</p>
+            </Reveal>
+          ) : null}
+
+          {c.id === "scientist" ? (
+            <Reveal className="mt-8">
+              <p className="text-[14px] font-semibold uppercase tracking-[0.08em] text-accent-ink">
+                Peer-reviewed publications
+              </p>
               <ol className="mt-3">
                 {research.publications.map((p) => (
-                  <li key={p.title} className="grid grid-cols-[3.5rem_1fr] gap-4 border-t border-line py-4">
-                    <span className="font-mono text-[12.5px] text-accent">{p.year}</span>
+                  <li key={p.title} className="grid grid-cols-[3.6rem_1fr] gap-4 border-t border-line py-4">
+                    <span className="text-[14px] font-semibold text-accent-ink">{p.year}</span>
                     <div>
-                      <p className="text-[15px] leading-snug">{p.title}</p>
-                      <p className="mt-1 text-[13px] text-muted">{p.journal}</p>
+                      <p className="text-[15.5px] font-semibold leading-snug">{p.title}</p>
+                      <p className="mt-1 text-[13.5px] text-muted">{p.journal}</p>
                     </div>
                   </li>
                 ))}
               </ol>
             </Reveal>
-          </div>
-          <Pull c={scientist} />
-        </Box>
-      </section>
+          ) : null}
 
-      {/* Designer: a wall of spaces */}
-      <section id={designer.id} className="scroll-mt-20">
-        <Box className="py-20 md:py-28">
-          <Head c={designer} />
-          <Reveal className="mt-10 grid gap-4 sm:grid-cols-12 sm:grid-rows-2">
-            <div className="sm:col-span-7 sm:row-span-2">
-              <Leaf k="hospitals/mangalore-shell-lobby" ratio="13 / 10" sizes="(min-width: 640px) 42vw, 100vw" />
-            </div>
-            <div className="sm:col-span-5">
-              <Pic k="hospitals/whitefield-angel-corridor" ratio="16 / 9" sizes="30vw" />
-            </div>
-            <div className="grid grid-cols-2 gap-4 sm:col-span-5">
-              <Pic k="academic/marc-auditorium" ratio="1 / 1" sizes="15vw" />
-              <Pic k="founder/site-auditorium" ratio="1 / 1" sizes="15vw" pos="50% 60%" />
-            </div>
-          </Reveal>
-          <Fig>
-            A lobby in Mangalore, a corridor in Whitefield, and an auditorium in Bengaluru after and during its build.
-          </Fig>
-          <div className="mt-10 grid gap-10 lg:grid-cols-12">
-            <Paras c={designer} className="lg:col-span-7" />
-          </div>
-          <Pull c={designer} />
-        </Box>
-      </section>
+          {images.length ? (
+            <Reveal className={`mt-10 grid gap-4 ${images.length > 1 ? "sm:grid-cols-2" : ""}`}>
+              {images.map((k) => (
+                <figure key={k}>
+                  <Pic
+                    k={k}
+                    ratio={images.length > 1 ? "4 / 3" : "16 / 9"}
+                    sizes="(min-width: 1024px) 340px, 100vw"
+                    pos="50% 30%"
+                  />
+                  <Small>{captions[k]}.</Small>
+                </figure>
+              ))}
+            </Reveal>
+          ) : null}
 
-      {/* Writer and Dr Gutsy, two short chapters side by side */}
+          {c.pull ? (
+            <Reveal className={`cut mt-10 px-7 py-9 md:px-10 ${tone === "surface" ? "bg-bg" : "bg-surface-2"}`}>
+              {c.pullLead ? <p className="text-[15px] text-muted">{c.pullLead}</p> : null}
+              <p className="display mt-3 text-[clamp(1.4rem,2.3vw,1.95rem)] leading-[1.25]">{c.pull}</p>
+            </Reveal>
+          ) : null}
+
+          {c.link ? (
+            <div className="mt-8">
+              <Pill href={resolve("/3", c.link.href)} tone="outline">
+                {c.link.label}
+              </Pill>
+            </div>
+          ) : null}
+        </div>
+      </Wrap3>
+    </section>
+  );
+}
+
+export default function FounderThree() {
+  return (
+    <>
+      {/* Hero */}
       <section className="bg-surface">
-        <Box className="grid gap-6 py-20 md:py-28 lg:grid-cols-2">
-          <article id={writer.id} className="scroll-mt-20 rounded-[8px] bg-bg p-7 md:p-10">
-            <h2 className="display text-[clamp(2rem,3.2vw,3rem)] leading-[1.04]">{writer.role}</h2>
-            <p className="mt-2 text-[15px] text-muted">{writer.title}</p>
-            <p className="display mt-6 text-[1.6rem] leading-[1.15] text-accent">
-              <em>{writer.maxim}</em>
-            </p>
-            <Paras c={writer} className="mt-6" />
-          </article>
-          <article id={gutsy.id} className="leaf scroll-mt-20 bg-tint p-7 md:p-10">
-            <h2 className="display text-[clamp(2rem,3.2vw,3rem)] leading-[1.04]">{gutsy.role}</h2>
-            <p className="mt-2 text-[15px] text-fg/70">{gutsy.title}</p>
-            <p className="display mt-6 text-[1.6rem] leading-[1.15] text-accent">
-              <em>{gutsy.maxim}</em>
-            </p>
-            <Paras c={gutsy} className="mt-6" />
-          </article>
-        </Box>
-      </section>
-
-      {/* Global perspective: five places in a row */}
-      <section id={global.id} className="scroll-mt-20">
-        <Box className="py-20 md:py-28">
-          <Head c={global} />
-          <Reveal>
-            <ul className="mt-10 grid grid-cols-2 border-l border-line sm:grid-cols-3 lg:grid-cols-5">
-              {(global.facts ?? []).map((f) => (
-                <li key={f.value} className="border-b border-r border-t border-line px-5 py-7">
-                  <span className="display text-[clamp(1.4rem,2.2vw,2rem)] leading-tight">{f.value}</span>
+        <Wrap3 className="grid items-center gap-12 py-14 md:py-20 lg:grid-cols-12">
+          <div className="lg:col-span-7">
+            <p className="text-[13px] font-semibold uppercase tracking-[0.1em] text-accent-ink">{founderHero.title}</p>
+            <h1 className="display mt-4 text-[clamp(3.2rem,7.6vw,6.75rem)] leading-[1] tracking-[-0.04em]">
+              Dr Shruti Pai
+            </h1>
+            <ul className="mt-7 flex flex-wrap gap-2">
+              {founderHero.roles.map((r) => (
+                <li key={r} className="rounded-full border border-line bg-bg px-4 py-2 text-[14.5px] font-semibold">
+                  {r}
                 </li>
               ))}
             </ul>
-          </Reveal>
-          <div className="mt-10 grid gap-10 lg:grid-cols-12 lg:items-center">
-            <Paras c={global} className="lg:col-span-6" />
-            <Reveal className="lg:col-span-5 lg:col-start-8" delay={0.1}>
-              <Leaf k="hospitals/malaysia-mural" ratio="16 / 10" variant="leaf-flip" sizes="(min-width: 1024px) 32vw, 100vw" />
-              <Fig>{captions["hospitals/malaysia-mural"]}.</Fig>
-            </Reveal>
+            <p className="mt-9 text-[17px] text-muted">{founderHero.lead}</p>
+            <p className="display mt-2 max-w-[20ch] text-[clamp(1.8rem,3.4vw,2.9rem)] leading-[1.25]">
+              How do we build systems that <Hl>truly help people?</Hl>
+            </p>
           </div>
-          <Pull c={global} />
-        </Box>
+          <div className="relative lg:col-span-5">
+            <div className="cut overflow-hidden">
+              <Pic
+                k={founderHero.portrait}
+                ratio="4 / 5"
+                sizes="(min-width: 1024px) 480px, 100vw"
+                preload
+                pos="50% 16%"
+                className="max-h-[72dvh] rounded-none"
+              />
+            </div>
+            <div className="absolute -left-2 bottom-12 rounded-[10px] bg-accent px-5 py-4 text-on-accent shadow-[0_18px_40px_-22px_rgba(21,27,37,0.5)] md:-left-8">
+              <p className="display text-[1.7rem] leading-none">PhD</p>
+              <p className="mt-1 text-[13px] font-semibold">Clinical Nutrition</p>
+            </div>
+            <Small>Reviewing artwork studies in the design studio.</Small>
+          </div>
+        </Wrap3>
       </section>
 
-      {/* Lived experience */}
-      <section id={lived.id} className="scroll-mt-20 bg-surface">
-        <Box className="py-20 md:py-28">
-          <Head c={lived} />
-          <div className="mt-10 grid gap-10 lg:grid-cols-12 lg:items-center">
-            <Reveal className="grid grid-cols-2 gap-4 lg:col-span-6">
-              <Leaf k="founder/mosaic-wall" ratio="3 / 4" sizes="24vw" pos="50% 40%" variant="leaf-sm" />
-              <div className="pt-12">
-                <Pic k="founder/site-foundation" ratio="3 / 4" sizes="24vw" />
-              </div>
-            </Reveal>
-            <Paras c={lived} className="lg:col-span-5 lg:col-start-8" />
-          </div>
-        </Box>
+      {/* Giant numbers */}
+      <section className="border-b border-line">
+        <Wrap3 className="py-14 md:py-20">
+          <dl className="grid grid-cols-2 gap-x-8 gap-y-12 text-center lg:grid-cols-4">
+            {proof.map((f, i) => (
+              <Reveal key={f.label} delay={i * 0.06}>
+                <dt className="display text-[clamp(2.8rem,6vw,5.25rem)] leading-none tracking-[-0.04em]">{f.value}</dt>
+                <dd className="mx-auto mt-4 max-w-[24ch]">
+                  <span className="block text-[17px] font-semibold">{f.unit}</span>
+                  <span className="mt-1 block text-[15px] leading-snug text-muted">{f.label}</span>
+                </dd>
+              </Reveal>
+            ))}
+          </dl>
+        </Wrap3>
       </section>
+
+      {/* Introduction */}
+      <section>
+        <Wrap3 className="py-16 md:py-24">
+          <Reveal>
+            <Heading title={founderHero.intro[0]} />
+          </Reveal>
+          <div className="mx-auto mt-10 grid max-w-[1000px] gap-8 md:grid-cols-2">
+            {founderHero.intro.slice(1).map((p, i) => (
+              <Reveal key={p} delay={i * 0.08}>
+                <p className="text-[17px] leading-relaxed text-fg/80">{p}</p>
+              </Reveal>
+            ))}
+          </div>
+        </Wrap3>
+      </section>
+
+      {/* Chapters */}
+      {chapters.map((c, i) => (
+        <ChapterBlock key={c.id} c={c} tone={i % 2 === 0 ? "surface" : "bg"} />
+      ))}
 
       {/* Three lenses */}
       <section>
-        <Box className="py-20 md:py-28">
+        <Wrap3 className="py-20 md:py-28">
           <Reveal>
-            <p className="display max-w-[26ch] pb-10 text-[clamp(1.6rem,2.6vw,2.4rem)] leading-[1.18]">{lenses.lead}</p>
+            <Heading
+              title={
+                <>
+                  Three <Hl>connected lenses</Hl>
+                </>
+              }
+              sub={lenses.lead}
+            />
           </Reveal>
-          <TriadTabs items={lensItems} id="lens" />
-          <Reveal className="mt-16 border-t border-fg pt-10">
+          <div className="mt-14 grid gap-x-7 gap-y-12 md:grid-cols-3">
+            {lenses.items.map((l, i) => (
+              <Reveal key={l.name} delay={i * 0.08}>
+                <Pic k={lensImages[i]} ratio="3 / 2" sizes="(min-width: 768px) 390px, 100vw" />
+                <h3 className="display mt-6 text-[1.8rem] leading-tight">{l.name}</h3>
+                <p className="mt-1.5 text-[16px] font-semibold text-accent-ink">{l.line}</p>
+                <p className="mt-3 text-[16.5px] leading-relaxed text-fg/80">{l.body}</p>
+              </Reveal>
+            ))}
+          </div>
+          <Reveal className="mt-16 rounded-[12px] bg-surface-2 px-7 py-10 md:px-14 md:py-14">
             {lenses.close.map((line) => (
-              <p key={line} className="display text-[clamp(1.6rem,3vw,2.8rem)] leading-[1.18] text-fg/50">
+              <p key={line} className="display text-[clamp(1.4rem,2.6vw,2.2rem)] leading-[1.3] text-fg/55">
                 {line}
               </p>
             ))}
-            <p className="display mt-5 text-[clamp(2.1rem,4.2vw,4rem)] leading-[1.06]">
-              Sagework operates <em className="text-accent">where all three meet.</em>
+            <p className="display mt-4 text-[clamp(1.8rem,3.4vw,2.9rem)] leading-[1.3]">
+              Sagework operates <Hl>where all three meet.</Hl>
             </p>
-            <p className="label mt-9 text-muted">{lenses.tagline}</p>
-            <div className="mt-9">
-              <ButtonThree href="/3#work">{lenses.cta}</ButtonThree>
+            <p className="mt-7 text-[13px] font-semibold uppercase tracking-[0.1em] text-muted">{lenses.tagline}</p>
+            <div className="mt-8">
+              <Pill href="/3#work">{lenses.cta}</Pill>
             </div>
           </Reveal>
-        </Box>
+        </Wrap3>
       </section>
     </>
   );

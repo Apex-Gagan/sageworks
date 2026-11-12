@@ -121,6 +121,25 @@ export const wisePapers = {
   ],
 };
 
+/** How Sagework handles evidence, from the Research and evidence page. */
+export const evidenceNotes = [
+  {
+    title: "How we work with evidence",
+    sub: "Clear sources. Proportionate claims. Visible uncertainty.",
+    body: "Sagework's scientific foundation is evidence-led. We assess study quality, the consistency of the wider research and its relevance to the people, setting and outcome being discussed. We distinguish associations from demonstrated effects, biological mechanisms from proven practical benefits, and findings in a specific population from claims about everyone.",
+  },
+  {
+    title: "From research to application",
+    sub: "Scientific understanding, connected with context",
+    body: "Research can inform a decision without providing a ready-made solution. Sagework considers how evidence relates to the people involved, the setting, available resources and the practical requirements of implementation and evaluation.",
+  },
+  {
+    title: "Evidence library",
+    sub: "Follow the sources behind the ideas",
+    body: "The evidence library connects Sagework's explanations and white papers with the research that informs them. Resources identify the type of evidence, the question addressed and relevant limitations. Where a source supports a specific Sagework explanation, that connection is made clear.",
+  },
+];
+
 /** Mail link that opens with the matching enquiry type as the subject. */
 export function discussHref(email: string, service: string) {
   return `mailto:${email}?subject=${encodeURIComponent(`Enquiry: ${service}`)}`;
