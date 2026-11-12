@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Pic } from "@/components/shared/Pic";
 import { Parallax, Reveal } from "@/components/shared/Motion";
 import { ChapterNav } from "@/components/one/Interactive";
+import { CountUp, Curtain, WordsUp } from "@/components/one/Modern";
 import { ButtonOne, Caption, Container, TextLink } from "@/components/one/ui";
 import { captions, type ImageKey } from "@/content/captions";
 import { chapters, founderHero, lenses } from "@/content/founder";
@@ -86,7 +87,7 @@ export default function FounderOne() {
           <div className="lg:col-span-7">
             <p className="label text-muted">{founderHero.title}</p>
             <h1 className="display mt-6 text-[clamp(4rem,10vw,10rem)] leading-[0.92]">
-              Dr Shruti <em className="italic">Pai</em>
+              <WordsUp segments={[{ text: "Dr Shruti" }, { text: "Pai", className: "italic" }]} />
             </h1>
             <ul className="mt-8 grid max-w-xl grid-cols-2 gap-x-8 gap-y-2 text-[14.5px] text-fg/80">
               {founderHero.roles.map((r) => (
@@ -101,13 +102,15 @@ export default function FounderOne() {
             </p>
           </div>
           <div className="lg:col-span-4 lg:col-start-9">
-            <Pic
-              k={founderHero.portrait}
-              ratio="3 / 4"
-              sizes="(min-width: 1024px) 32vw, 100vw"
-              preload
-              pos="50% 15%"
-            />
+            <Curtain delay={0.2}>
+              <Pic
+                k={founderHero.portrait}
+                ratio="3 / 4"
+                sizes="(min-width: 1024px) 32vw, 100vw"
+                preload
+                pos="50% 15%"
+              />
+            </Curtain>
             <Caption>Reviewing artwork studies in the design studio.</Caption>
           </div>
         </Container>
@@ -138,8 +141,10 @@ export default function FounderOne() {
           <div className="space-y-28 lg:col-span-9 md:space-y-36">
             {chapters.map((c) => (
               <article key={c.id} id={c.id} className="scroll-mt-28">
+                <h2 className="display text-[clamp(2.6rem,5vw,4.8rem)] leading-[1.02]">
+                  <WordsUp inView segments={[{ text: c.role }]} />
+                </h2>
                 <Reveal>
-                  <h2 className="display text-[clamp(2.6rem,5vw,4.8rem)] leading-[1.02]">{c.role}</h2>
                   <p className="mt-3 text-[16px] text-muted">{c.title}</p>
                 </Reveal>
 
@@ -152,7 +157,9 @@ export default function FounderOne() {
                       <dl className="mt-8 space-y-4">
                         {c.facts.map((f) => (
                           <div key={f.value + f.label} className="border-t border-line pt-3">
-                            <dt className="display text-[1.7rem] leading-none">{f.value}</dt>
+                            <dt className="display text-[1.7rem] leading-none">
+                              <CountUp value={f.value} />
+                            </dt>
                             {f.label ? <dd className="mt-1.5 text-[13.5px] text-muted">{f.label}</dd> : null}
                           </div>
                         ))}
@@ -172,9 +179,9 @@ export default function FounderOne() {
                 </div>
 
                 {c.images.length ? (
-                  <Reveal className="mt-12">
+                  <Curtain className="mt-12">
                     <ChapterImages images={c.images} />
-                  </Reveal>
+                  </Curtain>
                 ) : null}
 
                 {c.pull ? (
@@ -197,7 +204,10 @@ export default function FounderOne() {
           </Reveal>
           <div className="mt-10">
             {lenses.items.map((l) => (
-              <Reveal key={l.name} className="grid gap-4 border-t border-line py-8 md:grid-cols-12 md:items-baseline">
+              <Reveal
+                key={l.name}
+                className="grid gap-4 border-t border-line py-8 transition-[background-color,padding] duration-500 ease-soft hover:bg-bg hover:px-5 md:grid-cols-12 md:items-baseline"
+              >
                 <h3 className="display text-[clamp(2.4rem,4.4vw,4.2rem)] leading-none md:col-span-4">{l.name}</h3>
                 <p className="display text-[1.5rem] italic leading-snug text-accent md:col-span-3">{l.line}</p>
                 <p className="text-[15.5px] leading-relaxed text-fg/80 md:col-span-5">{l.body}</p>

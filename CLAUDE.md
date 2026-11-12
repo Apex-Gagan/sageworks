@@ -17,7 +17,7 @@ npm run dev      # local development on http://localhost:3000
 npm run build    # production build (what Vercel runs)
 npm run start    # serve the production build
 npm run lint     # eslint
-npm run test:ui  # 64 interaction checks in headless Chrome (dev server must be running;
+npm run test:ui  # 85 interaction checks in headless Chrome (dev server must be running;
                  # set BASE_URL / CHROME_PATH if not localhost:3000 / default Chrome)
 ```
 
@@ -55,6 +55,14 @@ italic emphasis, square hairline buttons, sharp-cornered photographs treated lik
 in a journal, small mono labels for evidence cues. Interactions are quiet: an accordion
 of services with a changing photograph, five senses as expanding photo strips, a chapter
 index that follows the reader on the founder page.
+The client approved its colours and type and asked for a more modern layout and motion
+on the same base. That layer lives in `components/one/Modern.tsx`: headline words rise
+out of a mask, photographs are uncovered from below, figures count up, the header steps
+aside on scroll down and carries a reading-progress line. Homepage sections added on top
+of the base: a marquee of sectors, a hairline bento of the four proof figures around a
+photograph, the triad as scroll steps (the photograph stays, the text scrolls past), a
+gallery that pins and pans sideways as the page scrolls (the ordinary slider below
+1024px and under reduced motion), and Dr Gutsy's questions as stacking cards.
 
 **Sample 2, "Canopy"** leans on Mindvalley and Dr Chatterjee.
 Deep forest background, bone text, one marigold accent. Bricolage Grotesque headings set
@@ -66,6 +74,13 @@ overlapping photographs you can select, a wave of arches and frames for projects
 services as a row of arches, Dr Gutsy's question in a speech bubble, a project list
 with a photograph that follows the pointer, a filterable wall with a lightbox, and a
 giant wordmark closing the footer. Each founder chapter has its own layout.
+Its three heroes (`components/two/Hero.tsx`) answer the pointer. Home: a warm torch
+follows the pointer through the dusk over the hillside, the photo capsule in the
+headline cycles, and the triad floats on the right as three selectable discs. Founder:
+the arch portrait leans toward the pointer, and each role under her name is a link to
+its chapter that previews that chapter's photograph and principle in the arch.
+Projects: a button per kind of place swaps the backdrop and caption, moving on by
+itself until someone points at it.
 
 **Sample 3, "Daylight"** is built directly on the two people-facing references,
 mindvalley.com and drchatterjee.com, at the client's request (the first version of
@@ -86,6 +101,13 @@ services on a slate panel (an accordion with a "Discuss ..." link each), founder
 credentials, five senses as cards with a cited finding each, Dr Gutsy on the teal band,
 principles carousel, research with both white-paper series and an evidence accordion.
 Projects are a filterable grid of cards; each opens a photo viewer.
+Its heroes: the home slider pushes in slowly on the current photograph, wipes the
+highlighter in behind the key words (`.hl-wipe`), shows a thumbnail per slide with a
+filling bar, and moves by arrows, thumbnails, left and right keys or a swipe. The
+founder hero (`components/three/Hero.tsx`) has role chips that link to their chapter
+and show its principle on the floating card, over a tint block that drifts against
+the portrait. The projects hero mosaic focuses the photograph being pointed at and
+moves a caption from tile to tile when nobody is pointing.
 
 Samples 1 and 2 share Hanken Grotesk for body copy. All three use DM Mono for citations.
 
@@ -106,13 +128,16 @@ src/
     shared/           Pic (image frame), Motion (Reveal, Parallax, ScrollText),
                       Scroller (every horizontal strip), Triad (mark and diagram),
                       SampleSwitcher (review-only)
-    one/              Sample 1 nav, footer, controls, interactive pieces
+    one/              Sample 1 nav, footer, controls, interactive pieces,
+                      Modern (WordsUp, Curtain, Drift, CountUp, ProgressLine,
+                      ScrollSteps, PinnedGallery)
     two/              Sample 2 nav, footer, ui (Sheet, Arch, Disc, Seal, Glow),
-                      Interactive (senses, questions, chapter pills, gallery),
-                      Signature (TriadCircles, ProjectList)
+                      Hero (the three heroes), Interactive (senses, questions,
+                      chapter pills, gallery), Signature (TriadCircles, ProjectList)
     three/            Sample 3 Header (and SideTab), footer, ui (Wrap3, Pill, Hl,
-                      Heading), Interactive (HeroSlider, ServiceList,
-                      PrincipleCarousel, Accordion, ProjectBrowser, ThenNow)
+                      Heading), Hero (founder and projects heroes), Interactive
+                      (HeroSlider, ServiceList, PrincipleCarousel, Accordion,
+                      ProjectBrowser, ThenNow)
   content/            ALL copy and data. Edit text here, not in components.
     home.ts           homepage copy (content master, Page 1)
     founder.ts        founder copy (content master, Page 2)
@@ -169,7 +194,22 @@ scripts/
 - **Sticky content inside a Sample 2 `Sheet`** works because the sheet uses
   `overflow-clip`, not `overflow-hidden`. Keep it that way.
 - **Auto-moving pieces pause on hover and on keyboard focus only.** A mouse click on a
-  control must not leave them paused (see `HeroSlides`).
+  control must not leave them paused (see `HeroSlider`). Their timer restarts whenever
+  the item changes, so something picked by hand gets its full time on screen.
+- **Never put a scroll trigger on a masked element.** An element that is fully clipped
+  (its own `clip-path`, or an ancestor's `overflow: hidden`) never counts as in view, so
+  `whileInView` on it never fires and the content stays hidden. Put the trigger on an
+  unmasked wrapper and drive the masked children through variants (see `WordsUp` and
+  `Curtain`).
+- **Keyframes used from inline styles go outside `@theme`** in `globals.css`. Tailwind
+  drops theme keyframes that no `--animate-*` variable names, which works in dev and
+  silently breaks in the production build (`progress`, `kenburns`, `hl-wipe`).
+- **Pointer effects are mouse only and optional.** Parallax, tilt and the torch read
+  `pointerType === "mouse"`, are skipped under reduced motion, and every hero works
+  without them on touch.
+- **Do not import `components/two/ui.tsx` into a client component.** It imports `Pic`,
+  which would ship the whole image manifest to the browser. Pass server-rendered pieces
+  (buttons, the seal) into client heroes as props instead.
 
 ## Adding or replacing photographs
 
@@ -261,6 +301,31 @@ Defined in `.env.example`. Copy to `.env.local` locally; add the same keys in Ve
   restart it. That happened here and looked like the new palette had not applied.
 - Tests: the Sample 3 checks were rewritten for the new components; 65 checks pass.
 
+### 2026-11-12, Sample 1 modernised, Sample 2 and 3 heroes enhanced
+
+- Client feedback: Sample 1's colours and fonts are right, but she wants a more modern
+  layout, modern sections and animation on the same base; in Samples 2 and 3 only the
+  hero sections should change, in design and interactivity.
+- **Sample 1.** Added the motion layer (`components/one/Modern.tsx`) and applied it to
+  all three pages. New homepage sections on the same palette and type: sectors marquee,
+  proof bento with counting figures, triad as scroll steps, pinned gallery that pans
+  with the scroll, stacking Dr Gutsy question cards. Founder and projects pages got the
+  rising headlines, uncovered photographs, counting facts, hover states and a
+  collaborators marquee. The header now hides on scroll down and shows reading progress.
+  No copy, colour or typeface changed.
+- **Sample 2.** Only the three heroes changed (`components/two/Hero.tsx`), as described
+  under "The three directions".
+- **Sample 3.** Only the three heroes changed: the slider in
+  `components/three/Interactive.tsx` and the founder and projects heroes in
+  `components/three/Hero.tsx`.
+- **Two flaws found by the tests and fixed.** Sample 2's Dr Gutsy question rotator ran
+  on a fixed interval, so a question picked by hand could be replaced a moment later; it
+  now restarts its timer on every change. The `progress` keyframes were being dropped
+  from the production CSS, so the filling bars never animated on the deployed site.
+- Tests: 85 checks pass, including each hero interaction, the Sample 1 scroll sections
+  on desktop, and that every Sample 1 headline and photograph is revealed on desktop
+  and at phone width. Production build passes.
+
 ## Open items for the client
 
 - **Professional portraits of Dr Shruti** (2023 to 2025 shoots) were not in the
@@ -288,6 +353,16 @@ Defined in `.env.example`. Copy to `.env.local` locally; add the same keys in Ve
   subtitles for projects and the founder, "Principles that guide the work", "Twelve
   bodies of work, four kinds of place" and the credential bullets (each restates a
   fact from her founder page). They need her approval.
+- **The four roles under her name now link to chapters**, in Samples 2 and 3. The
+  pairing is ours: Business Leader to that chapter, Clinical Nutrition Scientist and
+  Gut Microbiome Researcher both to "Scientist and Researcher", Human Systems Designer
+  to that chapter. The principle shown is the chapter's own maxim.
+- **Sample 3's founder hero shows a "20+ years" card**, taken from the first proof
+  figure on the homepage.
+- **Hero headlines in Samples 2 and 3 are typed into the hero components** (so the
+  words can rise and the emphasis can fall in the right place). If the homepage,
+  founder or projects headline changes, change it in `components/two/Hero.tsx`,
+  `app/3/page.tsx`, `app/3/founder/page.tsx` and `app/3/projects/page.tsx` too.
 - **Two emphasis splits are hard-coded** rather than read from the content files, so
   the accent can fall on the right words: the founder question on the Sample 2
   homepage and the closing lens line on the Sample 2 and 3 founder pages, plus the

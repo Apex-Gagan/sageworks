@@ -12,7 +12,8 @@ projects page, built with Next.js, TypeScript and Tailwind CSS.
 `/` is an overview that links all nine. A small switch at the bottom of every sample page
 flips to the same page in another sample.
 
-- **Still**: light sage paper, serif headings, quiet and editorial.
+- **Still**: light sage paper, serif headings, editorial, with scroll-led motion
+  (headlines that rise, photographs that are uncovered, a gallery that pans as you scroll).
 - **Canopy**: dark forest with a marigold accent, circles and arches, immersive.
 - **Daylight**: white and cream with a teal highlighter, modelled on mindvalley.com
   and drchatterjee.com: photo slider, tiles, mosaics, giant numbers, bold statements.
@@ -35,9 +36,9 @@ With the dev server running on port 3000:
 npm run test:ui
 ```
 
-This drives a headless Chrome through every slider, selector, tab set, filter, lightbox
-and mobile menu on all three samples, and checks each route at phone width for sideways
-overflow. Set `CHROME_PATH` if Chrome is not in the default location, and `BASE_URL` to
+This drives a headless Chrome through every slider, selector, tab set, filter, lightbox,
+hero interaction, scroll-led section and mobile menu on all three samples (85 checks),
+and checks each route at phone width for sideways overflow. Set `CHROME_PATH` if Chrome is not in the default location, and `BASE_URL` to
 test another address.
 
 ## Deploy to Vercel

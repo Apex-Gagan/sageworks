@@ -35,21 +35,27 @@
 
   --animate-breathe: breathe 28s ease-in-out infinite alternate;
   --animate-turn: turn 48s linear infinite;
+  --animate-marquee: marquee 46s linear infinite;
+  --animate-bob: bob 7s ease-in-out infinite alternate;
 
+  @keyframes marquee {
+    to {
+      transform: translate3d(-50%, 0, 0);
+    }
+  }
+  @keyframes bob {
+    from {
+      transform: translate3d(0, -6px, 0);
+    }
+    to {
+      transform: translate3d(0, 8px, 0);
+    }
+  }
   @keyframes turn {
     to {
       transform: rotate(360deg);
     }
   }
-  @keyframes progress {
-    from {
-      transform: scaleX(0);
-    }
-    to {
-      transform: scaleX(1);
-    }
-  }
-
   @keyframes breathe {
     from {
       transform: scale(1.02);
@@ -219,6 +225,47 @@ body {
   padding: 0.02em 0.2em 0.06em;
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
+}
+/* The same highlighter, drawn in from the left when a hero headline arrives.
+   The words start in the surrounding text colour and take the ink colour as
+   the teal reaches them, so they stay readable on a photograph. */
+.hl-wipe {
+  background: linear-gradient(var(--accent), var(--accent)) no-repeat left center / 0% 100%;
+  padding: 0.02em 0.2em 0.06em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  animation:
+    hl-wipe 0.9s var(--ease-soft) 0.45s forwards,
+    hl-ink 0.4s linear 0.6s forwards;
+}
+@keyframes hl-wipe {
+  to {
+    background-size: 100% 100%;
+  }
+}
+@keyframes hl-ink {
+  to {
+    color: var(--on-accent);
+  }
+}
+/* Filling bar on auto-advancing controls. Used from inline styles, so it lives
+   outside @theme: Tailwind drops theme keyframes that no --animate-* names. */
+@keyframes progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+/* Slow push in on the hero slider's current photograph. */
+@keyframes kenburns {
+  from {
+    transform: scale(1.02);
+  }
+  to {
+    transform: scale(1.13);
+  }
 }
 /* Sample 3 signature card: one generous corner. */
 .cut {

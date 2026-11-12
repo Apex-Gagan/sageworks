@@ -87,9 +87,11 @@ export function QuestionRotator({ questions }: { questions: string[] }) {
 
   useEffect(() => {
     if (reduce) return;
-    const id = window.setInterval(() => setI((v) => (v + 1) % questions.length), 5200);
-    return () => window.clearInterval(id);
-  }, [questions.length, reduce]);
+    // Restarts whenever the question changes, so a question picked by hand
+    // gets its full time on screen instead of being replaced a moment later.
+    const id = window.setTimeout(() => setI((v) => (v + 1) % questions.length), 5200);
+    return () => window.clearTimeout(id);
+  }, [i, questions.length, reduce]);
 
   if (reduce) {
     return (

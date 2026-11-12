@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { Pic, imageData } from "@/components/shared/Pic";
 import { Parallax, Reveal, ScrollText } from "@/components/shared/Motion";
 import { Scroller } from "@/components/shared/Scroller";
 import { Arch, ButtonTwo, Disc, Glow, Note, Seal, Sheet, Wrap } from "@/components/two/ui";
 import { QuestionRotator, SensesTwo, type MediaItem } from "@/components/two/Interactive";
+import { HomeHeroTwo } from "@/components/two/Hero";
 import { TriadCircles, type CircleItem } from "@/components/two/Signature";
 import {
   about,
@@ -21,6 +21,7 @@ import {
   work,
 } from "@/content/home";
 import { founderHero } from "@/content/founder";
+import type { ImageKey } from "@/content/captions";
 
 export const metadata: Metadata = {
   title: "Sample 2 | Home",
@@ -36,57 +37,40 @@ const triadItems: CircleItem[] = triad.domains.map((d) => {
   return { name: d.name, line: d.question, body: d.body, detail: d.detail, src: i.src, blur: i.blur, alt: i.alt };
 });
 
+function media(k: ImageKey) {
+  const d = imageData(k);
+  return { src: d.src, blur: d.blur, alt: d.alt };
+}
+
+const capsuleKeys: ImageKey[] = [
+  "hospitals/jaipur-peacock",
+  "hospitals/dwarka-facade-kites",
+  "hospitals/paediatric-ceiling",
+  "hospitals/mangalore-spiral-turtle",
+];
+
 export default function HomeTwo() {
-  const heroImg = imageData("academic/msap-aerial-mist");
-  const capsule = imageData("hospitals/jaipur-peacock");
+  const heroImg = media("academic/msap-aerial-mist");
   const ribbon = [...homeGallery, ...homeGallery];
 
   return (
     <>
       {/* 1. Hero */}
-      <section className="relative isolate flex min-h-[100dvh] items-end overflow-hidden">
-        <div className="absolute inset-0 -z-10">
-          <Image
-            src={heroImg.src}
-            alt={heroImg.alt}
-            fill
-            preload
-            sizes="100vw"
-            placeholder="blur"
-            blurDataURL={heroImg.blur}
-            className="animate-breathe object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-bg via-bg/50 to-bg/20" />
-          <div className="absolute inset-0 bg-gradient-to-r from-bg/75 via-bg/10 to-transparent" />
-        </div>
-        <Wrap className="pb-28 pt-28 md:pb-36">
-          <p className="label text-fg/75">Evidence-led advisory and design practice</p>
-          <h1 className="display mt-6 max-w-[19ch] text-[clamp(2.7rem,6vw,6.25rem)] leading-[0.99]">
-            Designing human{" "}
-            <span className="relative mx-[0.04em] inline-block h-[0.72em] w-[1.75em] translate-y-[0.07em] overflow-hidden rounded-full align-baseline ring-1 ring-fg/25">
-              <Image
-                src={capsule.src}
-                alt=""
-                fill
-                sizes="180px"
-                placeholder="blur"
-                blurDataURL={capsule.blur}
-                className="object-cover"
-              />
-            </span>{" "}
-            systems for <strong className="text-accent">health, resilience and performance</strong>
-          </h1>
-          <div className="mt-8 flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
-            <p className="max-w-[46ch] text-[17px] leading-relaxed text-fg/85">{hero.sub}</p>
-            <div className="flex flex-wrap gap-3">
-              <ButtonTwo href="#about">{hero.cta}</ButtonTwo>
-              <ButtonTwo href={contactHref} tone="ghost">
-                Start a Conversation
-              </ButtonTwo>
-            </div>
-          </div>
-        </Wrap>
-      </section>
+      <HomeHeroTwo
+        bg={heroImg}
+        capsules={capsuleKeys.map(media)}
+        discs={triadItems.map((t) => ({ name: t.name, line: t.line, src: t.src, blur: t.blur, alt: t.alt }))}
+        label="Evidence-led advisory and design practice"
+        sub={hero.sub}
+        actions={
+          <>
+            <ButtonTwo href="#about">{hero.cta}</ButtonTwo>
+            <ButtonTwo href={contactHref} tone="ghost">
+              Start a Conversation
+            </ButtonTwo>
+          </>
+        }
+      />
 
       {/* 2. Proof and the statement */}
       <Sheet id="about">

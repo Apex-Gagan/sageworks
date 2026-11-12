@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import { Pic } from "@/components/shared/Pic";
+import { Pic, imageData } from "@/components/shared/Pic";
 import { Reveal } from "@/components/shared/Motion";
+import { FounderHeroThree, type Role3 } from "@/components/three/Hero";
 import { Heading, Hl, Pill, Small, Wrap3 } from "@/components/three/ui";
 import { captions, type ImageKey } from "@/content/captions";
 import { chapters, founderHero, lenses, type Chapter } from "@/content/founder";
@@ -136,48 +137,40 @@ function ChapterBlock({ c, tone }: { c: Chapter; tone: "bg" | "surface" }) {
   );
 }
 
+/**
+ * The four roles under her name each lead to the chapter that tells that part
+ * of the story; pointing at one shows that chapter's principle on the portrait.
+ */
+const roleChapters = ["business-leader", "scientist", "scientist", "designer"];
+
+const heroRoles: Role3[] = founderHero.roles.map((label, i) => {
+  const c = chapters.find((ch) => ch.id === roleChapters[i]) as Chapter;
+  return { label, href: `#${c.id}`, chapter: c.role, maxim: c.maxim };
+});
+
+const portrait = imageData(founderHero.portrait);
+
 export default function FounderThree() {
   return (
     <>
       {/* Hero */}
-      <section className="bg-surface">
-        <Wrap3 className="grid items-center gap-12 py-14 md:py-20 lg:grid-cols-12">
-          <div className="lg:col-span-7">
-            <p className="text-[13px] font-semibold uppercase tracking-[0.1em] text-accent-ink">{founderHero.title}</p>
-            <h1 className="display mt-4 text-[clamp(3.2rem,7.6vw,6.75rem)] leading-[1] tracking-[-0.04em]">
-              Dr Shruti Pai
-            </h1>
-            <ul className="mt-7 flex flex-wrap gap-2">
-              {founderHero.roles.map((r) => (
-                <li key={r} className="rounded-full border border-line bg-bg px-4 py-2 text-[14.5px] font-semibold">
-                  {r}
-                </li>
-              ))}
-            </ul>
-            <p className="mt-9 text-[17px] text-muted">{founderHero.lead}</p>
-            <p className="display mt-2 max-w-[20ch] text-[clamp(1.8rem,3.4vw,2.9rem)] leading-[1.25]">
-              How do we build systems that <Hl>truly help people?</Hl>
-            </p>
-          </div>
-          <div className="relative lg:col-span-5">
-            <div className="cut overflow-hidden">
-              <Pic
-                k={founderHero.portrait}
-                ratio="4 / 5"
-                sizes="(min-width: 1024px) 480px, 100vw"
-                preload
-                pos="50% 16%"
-                className="max-h-[72dvh] rounded-none"
-              />
-            </div>
-            <div className="absolute -left-2 bottom-12 rounded-[10px] bg-accent px-5 py-4 text-on-accent shadow-[0_18px_40px_-22px_rgba(21,27,37,0.5)] md:-left-8">
-              <p className="display text-[1.7rem] leading-none">PhD</p>
-              <p className="mt-1 text-[13px] font-semibold">Clinical Nutrition</p>
-            </div>
-            <Small>Reviewing artwork studies in the design studio.</Small>
-          </div>
-        </Wrap3>
-      </section>
+      <FounderHeroThree
+        title={founderHero.title}
+        roles={heroRoles}
+        lead={founderHero.lead}
+        question={
+          <>
+            How do we build systems that{" "}
+            <span className="hl-wipe" style={{ animationDelay: "1.1s, 1.25s" }}>
+              truly help people?
+            </span>
+          </>
+        }
+        portrait={{ src: portrait.src, blur: portrait.blur, alt: portrait.alt }}
+        caption="Reviewing artwork studies in the design studio."
+        badge={{ value: "PhD", label: "Clinical Nutrition" }}
+        stat={{ value: proof[0].value, label: proof[0].unit }}
+      />
 
       {/* Giant numbers */}
       <section className="border-b border-line">

@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { Pic, imageData } from "@/components/shared/Pic";
 import { Reveal, ScrollText } from "@/components/shared/Motion";
 import { Scroller } from "@/components/shared/Scroller";
+import { FounderHeroTwo, type HeroRole } from "@/components/two/Hero";
 import { ChapterPills } from "@/components/two/Interactive";
 import { TriadCircles, type CircleItem } from "@/components/two/Signature";
 import { Arch, ButtonTwo, Disc, Glow, Note, Seal, Sheet, Wrap } from "@/components/two/ui";
@@ -90,6 +91,28 @@ function Anchor({ id, children }: { id: string; children: ReactNode }) {
   );
 }
 
+function heroMedia(k: ImageKey) {
+  const d = imageData(k);
+  return { src: d.src, blur: d.blur, alt: d.alt };
+}
+
+/**
+ * The four roles under her name each lead to the chapter that tells that part
+ * of the story, and preview it in the portrait frame while pointed at.
+ */
+const roleChapters: { chapter: string; image: number }[] = [
+  { chapter: "business-leader", image: 0 },
+  { chapter: "scientist", image: 0 },
+  { chapter: "scientist", image: 1 },
+  { chapter: "designer", image: 0 },
+];
+
+const heroRoles: HeroRole[] = founderHero.roles.map((label, i) => {
+  const target = roleChapters[i];
+  const c = chapters.find((ch) => ch.id === target.chapter) as Chapter;
+  return { label, href: `#${c.id}`, maxim: c.maxim, media: heroMedia(c.images[target.image]) };
+});
+
 export default function FounderTwo() {
   const pills = chapters.map((c) => ({ id: c.id, label: c.role }));
   const business = by["business-leader"];
@@ -103,41 +126,15 @@ export default function FounderTwo() {
   return (
     <>
       {/* Hero */}
-      <section className="relative overflow-hidden">
-        <Glow className="-right-40 top-20" />
-        <Wrap className="relative grid items-end gap-12 pb-28 pt-28 md:pb-36 lg:min-h-[100dvh] lg:grid-cols-12">
-          <div className="lg:col-span-8">
-            <p className="label text-muted">{founderHero.title}</p>
-            <h1 className="display mt-6 text-[clamp(4rem,12vw,12rem)] leading-[0.86]">
-              Dr Shruti <strong className="text-accent">Pai</strong>
-            </h1>
-            <ul className="mt-9 flex flex-wrap gap-2">
-              {founderHero.roles.map((r) => (
-                <li key={r} className="rounded-full border border-fg/20 px-4 py-2 text-[13.5px] text-fg/85">
-                  {r}
-                </li>
-              ))}
-            </ul>
-            <p className="mt-10 max-w-[44ch] text-[16.5px] leading-relaxed text-muted">{founderHero.lead}</p>
-            <p className="display mt-3 max-w-3xl text-[clamp(1.9rem,3.6vw,3.4rem)] leading-[1.04]">
-              {founderHero.question}
-            </p>
-          </div>
-          <div className="relative mx-auto w-full max-w-[420px] lg:col-span-4">
-            <div aria-hidden="true" className="absolute -right-8 -top-8 h-[62%] w-[62%] rounded-full border border-accent/40" />
-            <Arch
-              k={founderHero.portrait}
-              ratio="3 / 4.3"
-              sizes="(min-width: 1024px) 30vw, 90vw"
-              preload
-              pos="50% 12%"
-              className="relative"
-            />
-            <Seal id="seal-founder" className="absolute -bottom-10 -left-10 hidden h-[132px] w-[132px] rounded-full bg-bg text-fg/75 sm:block" />
-            <Note>Reviewing artwork studies in the design studio.</Note>
-          </div>
-        </Wrap>
-      </section>
+      <FounderHeroTwo
+        title={founderHero.title}
+        roles={heroRoles}
+        lead={founderHero.lead}
+        question={founderHero.question}
+        portrait={heroMedia(founderHero.portrait)}
+        caption="Reviewing artwork studies in the design studio."
+        seal={<Seal id="seal-founder" className="relative h-[132px] w-[132px] rounded-full bg-bg text-fg/75" />}
+      />
 
       {/* Introduction */}
       <Sheet tone="surface">
