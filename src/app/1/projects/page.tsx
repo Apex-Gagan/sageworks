@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Pic } from "@/components/shared/Pic";
 import { Parallax, Reveal } from "@/components/shared/Motion";
+import { Scroller } from "@/components/shared/Scroller";
 import { ButtonOne, Caption, Container } from "@/components/one/ui";
 import { captions } from "@/content/captions";
 import { contactHref } from "@/content/home";
@@ -148,14 +149,20 @@ export default function ProjectsOne() {
             Made with the people <em className="italic">who build and run them</em>
           </h2>
         </Container>
-        <div className="no-scrollbar flex snap-x gap-5 overflow-x-auto px-5 pb-24 md:px-10 md:pb-32">
+        <Scroller
+          label="photographs of the team at work"
+          tone="one"
+          className="pb-24 md:pb-32"
+          trackClassName="flex snap-x snap-proximity scroll-px-5 gap-5 px-5 md:scroll-px-10 md:px-10"
+          controlsClassName="mx-auto mt-8 max-w-[1440px] justify-end px-5 md:px-10"
+        >
           {processShots.map((k) => (
             <figure key={k} className="w-[70vw] shrink-0 snap-start sm:w-[40vw] lg:w-[26vw]">
               <Pic k={k} ratio="4 / 5" sizes="(min-width: 1024px) 26vw, 70vw" pos="50% 25%" />
               <Caption>{captions[k]}.</Caption>
             </figure>
           ))}
-        </div>
+        </Scroller>
       </section>
 
       {/* Project index and collaborators */}

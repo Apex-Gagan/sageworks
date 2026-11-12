@@ -70,7 +70,8 @@ src/
     2/                Sample 2 routes and layout
   components/
     shared/           Pic (image frame), Motion (Reveal, Parallax, ScrollText),
-                      Triad (mark and diagram), SampleSwitcher (review-only)
+                      Scroller (every horizontal strip), Triad (mark and diagram),
+                      SampleSwitcher (review-only)
     one/              Sample 1 nav, footer, controls, interactive pieces
     two/              Sample 2 nav, footer, controls, interactive pieces
   content/            ALL copy and data. Edit text here, not in components.
@@ -103,6 +104,10 @@ scripts/
   Everything else is described neutrally.
 - **Motion** lives in client leaf components and always respects
   `prefers-reduced-motion`. Animate transform and opacity only.
+- **Horizontal strips always use `<Scroller>`**, never a bare `overflow-x-auto` div.
+  The scrollbar is hidden by design, so a bare strip cannot be moved with a mouse.
+  `Scroller` adds mouse drag, arrow buttons, keyboard arrows and (with `auto`) a
+  gentle drift that pauses on hover; arrows hide when the content already fits.
 - **No current-time calls in server components** (`new Date()`), because Cache
   Components prerendering rejects them. The footer year is a literal.
 - **Each sample is theme-locked** (Sample 1 light, Sample 2 dark) on purpose, so the
@@ -152,6 +157,20 @@ Defined in `.env.example`. Copy to `.env.local` locally; add the same keys in Ve
 - Built the overview page and the review-only sample switcher.
 - Added `.gitignore`, `.env.example`, `.env.local`, this file and the README.
 - Set `robots: noindex` while the site is a review draft.
+
+### 2026-11-12, sliders fixed
+
+- Reported: some sliders could not be scrolled. Cause: the strips relied on native
+  horizontal scrolling with the scrollbar hidden, which only works by touch or
+  trackpad. With a mouse there was nothing to grab.
+- Added `components/shared/Scroller.tsx` and moved all six strips onto it: Sample 1
+  homepage environments and projects team strip; Sample 2 homepage project ribbon and
+  publications, founder chapter photographs, projects team strip.
+- The Sample 2 project ribbon was a CSS marquee that could not be controlled and
+  stood still under reduced motion. It now drifts through `Scroller` and can be
+  dragged or stepped with the arrows.
+- Tested arrows, mouse drag, auto drift, accordions, sense selectors, question
+  rotator, chapter indexes, gallery filters, lightbox and both mobile menus.
 
 ## Open items for the client
 

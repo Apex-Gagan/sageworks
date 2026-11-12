@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Pic } from "@/components/shared/Pic";
 import { Reveal, ScrollText } from "@/components/shared/Motion";
+import { Scroller } from "@/components/shared/Scroller";
 import { TriadDiagram } from "@/components/shared/Triad";
 import { ChapterPills } from "@/components/two/Interactive";
 import { ButtonTwo, Note, Wrap } from "@/components/two/ui";
@@ -114,7 +115,13 @@ export default function FounderTwo() {
                 </div>
 
                 {c.images.length ? (
-                  <div className="no-scrollbar flex snap-x gap-4 overflow-x-auto px-7 pb-8 md:px-12 md:pb-12">
+                  <Scroller
+                    label={`photographs for ${c.role}`}
+                    tone="two"
+                    className="pb-8 md:pb-12"
+                    trackClassName="flex snap-x snap-proximity scroll-px-7 gap-4 px-7 md:scroll-px-12 md:px-12"
+                    controlsClassName="mt-6 justify-end px-7 md:px-12"
+                  >
                     {c.images.map((k, i) => (
                       <figure
                         key={k}
@@ -129,7 +136,7 @@ export default function FounderTwo() {
                         <Note>{captions[k]}.</Note>
                       </figure>
                     ))}
-                  </div>
+                  </Scroller>
                 ) : null}
               </article>
 

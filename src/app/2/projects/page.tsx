@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { Pic, imageData } from "@/components/shared/Pic";
 import { Reveal } from "@/components/shared/Motion";
+import { Scroller } from "@/components/shared/Scroller";
 import { GalleryTwo, type GalleryItem } from "@/components/two/Interactive";
 import { ButtonTwo, Note, Wrap } from "@/components/two/ui";
 import { captions } from "@/content/captions";
@@ -171,14 +172,20 @@ export default function ProjectsTwo() {
             Made with the people <span className="text-accent">who build and run them</span>
           </h2>
         </Wrap>
-        <div className="no-scrollbar flex snap-x gap-4 overflow-x-auto px-5 pb-24 md:px-10 md:pb-36">
+        <Scroller
+          label="photographs of the team at work"
+          tone="two"
+          className="pb-24 md:pb-36"
+          trackClassName="flex snap-x snap-proximity scroll-px-5 gap-4 px-5 md:scroll-px-10 md:px-10"
+          controlsClassName="mx-auto mt-8 max-w-[1480px] justify-end px-5 md:px-10"
+        >
           {processShots.map((k) => (
             <figure key={k} className="w-[70vw] shrink-0 snap-start sm:w-[40vw] lg:w-[26vw]">
               <Pic k={k} ratio="4 / 5" sizes="(min-width: 1024px) 26vw, 70vw" pos="50% 25%" />
               <Note>{captions[k]}.</Note>
             </figure>
           ))}
-        </div>
+        </Scroller>
       </section>
 
       {/* Index and collaborators */}

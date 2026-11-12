@@ -29,17 +29,8 @@
   --radius-media: var(--media-radius);
   --radius-control: var(--control-radius);
 
-  --animate-drift: drift 60s linear infinite;
   --animate-breathe: breathe 28s ease-in-out infinite alternate;
 
-  @keyframes drift {
-    from {
-      transform: translate3d(0, 0, 0);
-    }
-    to {
-      transform: translate3d(-50%, 0, 0);
-    }
-  }
   @keyframes breathe {
     from {
       transform: scale(1.02);

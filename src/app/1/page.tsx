@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Pic, imageData } from "@/components/shared/Pic";
 import { Parallax, Reveal } from "@/components/shared/Motion";
 import { TriadDiagram } from "@/components/shared/Triad";
+import { Scroller } from "@/components/shared/Scroller";
 import { ButtonOne, Caption, Container, TextLink } from "@/components/one/ui";
 import { SensesOne, ServicesOne, type MediaItem } from "@/components/one/Interactive";
 import {
@@ -164,7 +165,13 @@ export default function HomeOne() {
           </h2>
           <TextLink href="/1/projects">View all projects</TextLink>
         </Container>
-        <div className="no-scrollbar flex snap-x snap-mandatory gap-5 overflow-x-auto px-5 pb-20 md:gap-7 md:px-10 md:pb-28">
+        <Scroller
+          label="selected environments"
+          tone="one"
+          className="pb-20 md:pb-28"
+          trackClassName="flex snap-x snap-proximity scroll-px-5 gap-5 px-5 md:scroll-px-10 md:gap-7 md:px-10"
+          controlsClassName="mx-auto mt-8 max-w-[1440px] justify-end px-5 md:px-10"
+        >
           {homeGallery.map((g, i) => (
             <figure
               key={g.image}
@@ -181,7 +188,7 @@ export default function HomeOne() {
               </figcaption>
             </figure>
           ))}
-        </div>
+        </Scroller>
       </section>
 
       {/* 5. Work with Sagework */}

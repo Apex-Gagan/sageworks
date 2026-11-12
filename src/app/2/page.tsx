@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Pic, imageData } from "@/components/shared/Pic";
 import { Reveal, ScrollText } from "@/components/shared/Motion";
+import { Scroller } from "@/components/shared/Scroller";
 import { ButtonTwo, Note, Wrap } from "@/components/two/ui";
 import { QuestionRotator, SensesTwo, type MediaItem } from "@/components/two/Interactive";
 import {
@@ -169,7 +170,13 @@ export default function HomeTwo() {
           </h2>
           <ButtonTwo href="/2/projects">View all projects</ButtonTwo>
         </Wrap>
-        <div className="flex w-max gap-5 pr-5 hover:[animation-play-state:paused] motion-safe:animate-drift">
+        <Scroller
+          label="selected environments"
+          tone="two"
+          auto={34}
+          trackClassName="flex gap-5 pr-5"
+          controlsClassName="mx-auto mt-10 max-w-[1480px] justify-end px-5 md:px-10"
+        >
           {ribbon.map((g, i) => (
             <Link
               key={`${g.image}-${i}`}
@@ -183,7 +190,7 @@ export default function HomeTwo() {
               <p className="text-[13px] text-muted">{g.place}</p>
             </Link>
           ))}
-        </div>
+        </Scroller>
       </section>
 
       {/* 5. Services bento */}
@@ -324,7 +331,13 @@ export default function HomeTwo() {
             </ul>
           </Reveal>
         </Wrap>
-        <div className="no-scrollbar mt-14 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-6 md:px-10">
+        <Scroller
+          label="peer-reviewed publications"
+          tone="two"
+          className="mt-14"
+          trackClassName="flex snap-x snap-proximity scroll-px-5 gap-4 px-5 md:scroll-px-10 md:px-10"
+          controlsClassName="mx-auto mt-6 max-w-[1480px] justify-end px-5 md:px-10"
+        >
           {research.publications.map((p) => (
             <article
               key={p.title}
@@ -337,7 +350,7 @@ export default function HomeTwo() {
               </div>
             </article>
           ))}
-        </div>
+        </Scroller>
         <Wrap className="pb-24 pt-10 md:pb-36">
           <p className="text-[14px] text-muted">White papers: the Human Adaptation Series</p>
           <ul className="mt-5 grid gap-x-10 sm:grid-cols-2 lg:grid-cols-3">
