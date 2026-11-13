@@ -9,8 +9,7 @@ projects page, built with Next.js, TypeScript and Tailwind CSS.
 | Founder page  | `/1/founder`     | `/2/founder`      | `/3/founder`     |
 | Projects page | `/1/projects`    | `/2/projects`     | `/3/projects`    |
 
-`/` is an overview drawn as an old fort: each sample is a shuttered window that swings
-open and lets you step through to the sample. A small switch at the bottom of every sample page
+`/` is an overview that links all nine. A small switch at the bottom of every sample page
 flips to the same page in another sample.
 
 - **Still**: light sage paper, serif headings, editorial, with scroll-led motion
@@ -38,7 +37,7 @@ npm run test:ui
 ```
 
 This drives a headless Chrome through every slider, selector, tab set, filter, lightbox,
-hero interaction, scroll-led section and mobile menu on all three samples (89 checks),
+hero interaction, scroll-led section and mobile menu on all three samples (85 checks),
 and checks each route at phone width for sideways overflow. Set `CHROME_PATH` if Chrome is not in the default location, and `BASE_URL` to
 test another address.
 

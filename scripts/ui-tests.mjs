@@ -534,63 +534,8 @@ for (const path of ["/1/founder", "/1/projects"]) {
   ok(`${path} loads with no runtime errors`, errors.length === 0, errors.join(" | "));
   await page.close();
 }
-/* --------------------------- Overview: the fort --------------------------- */
 {
   const { page, errors } = await open("/");
-  await sleep(1300);
-  const angle = () =>
-    page.evaluate(() => getComputedStyle(document.querySelector('[data-window="2"] .fort-opening')).getPropertyValue("--open").trim());
-  const a0 = await angle();
-  await page.hover('[data-window="2"]');
-  await sleep(300);
-  const a1 = await angle();
-  ok("Overview shutters stand ajar and open further when pointed at", a0 === "21deg" && a1 === "46deg", `${a0} => ${a1}`);
-
-  await page.click('[data-window="2"]');
-  await sleep(500);
-  const mid = await page.evaluate(() => ({
-    open: document.querySelector('[data-window="2"] .fort-opening').dataset.open,
-    journey: document.querySelector("[data-fort]").dataset.journey,
-    url: location.pathname,
-  }));
-  await sleep(700);
-  const through = await page.evaluate(() => !!document.querySelector("[data-through]"));
-  const landed = await page.waitForFunction(() => location.pathname === "/2", { timeout: 20000 }).then(
-    () => true,
-    () => false,
-  );
-  ok(
-    "Overview window swings open, the view grows, then the sample loads",
-    mid.open === "true" && mid.journey === "shutters" && mid.url === "/" && through && landed,
-    JSON.stringify({ ...mid, through, landed }),
-  );
-
-  await sleep(900);
-  await page.goBack();
-  await sleep(1600);
-  const back = await page.evaluate(() => ({
-    url: location.pathname,
-    journey: document.querySelector("[data-fort]")?.dataset.journey,
-    overlay: !!document.querySelector("[data-arrive], [data-through]"),
-    open: document.querySelector('[data-window="2"] .fort-opening')?.dataset.open,
-  }));
-  ok(
-    "Overview is back to closed windows when returned to",
-    back.url === "/" && back.journey === "idle" && !back.overlay && back.open === "false",
-    JSON.stringify(back),
-  );
-
-  const link = await page.$('[data-fort] a[href="/3/projects"]');
-  await link.evaluate((el) => el.scrollIntoView({ block: "center", behavior: "instant" }));
-  await sleep(300);
-  await link.click();
-  await sleep(400);
-  const viaLink = await page.evaluate(() => document.querySelector('[data-window="3"] .fort-opening').dataset.open);
-  const landed3 = await page.waitForFunction(() => location.pathname === "/3/projects", { timeout: 20000 }).then(
-    () => true,
-    () => false,
-  );
-  ok("Overview page link opens its own window and lands on that page", viaLink === "true" && landed3, `${viaLink} landed:${landed3}`);
   ok("/ loads with no runtime errors", errors.length === 0, errors.join(" | "));
   await page.close();
 }
