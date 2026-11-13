@@ -17,7 +17,7 @@ npm run dev      # local development on http://localhost:3000
 npm run build    # production build (what Vercel runs)
 npm run start    # serve the production build
 npm run lint     # eslint
-npm run test:ui  # 85 interaction checks in headless Chrome (dev server must be running;
+npm run test:ui  # 89 interaction checks in headless Chrome (dev server must be running;
                  # set BASE_URL / CHROME_PATH if not localhost:3000 / default Chrome)
 ```
 
@@ -28,7 +28,7 @@ After changing any interactive component, run `npm run test:ui` and add a check 
 
 | Route          | What it is                                     |
 | -------------- | ---------------------------------------------- |
-| `/`            | Overview page that links all nine sample pages |
+| `/`            | Overview: an old fort, one window per sample   |
 | `/1`           | Homepage, Sample 1 "Still"                     |
 | `/1/founder`   | Founder page, Sample 1                         |
 | `/1/projects`  | Projects page, Sample 1                        |
@@ -85,20 +85,21 @@ itself until someone points at it.
 **Sample 3, "Daylight"** is built directly on the two people-facing references,
 mindvalley.com and drchatterjee.com, at the client's request (the first version of
 Sample 3, "Folio", was rejected and replaced).
-White and cream grounds, slate text, Dr Chatterjee's teal as the single accent, and
-Mindvalley's own typeface, Google Sans Flex, set bold. Its signature is the highlighter:
-a teal block behind the key words of a headline (`.hl`). Buttons are pills, photographs
+White and cream grounds, slate text, one green accent (`#9ACA28`, chosen by the client;
+it replaced the teal borrowed from Dr Chatterjee), and Mindvalley's own typeface, Google
+Sans Flex, set bold. Its signature is the highlighter: a green block behind the key
+words of a headline (`.hl`). Buttons are pills, photographs
 have 10px corners, and quote cards have one generous corner (`.cut`).
-From Dr Chatterjee: the white header with the current page in a teal block and an
+From Dr Chatterjee: the white header with the current page in a green block and an
 outlined pill, the full-width photo slider with a centred message, the grid of tiles
-with highlighted titles, the teal band, the quote card with a large corner and side
+with highlighted titles, the green band, the quote card with a large corner and side
 arrows, and the fixed tab on the right edge.
 From Mindvalley: bold centred statements, the photo mosaic, giant numbers, the grey
 quote panel, three image cards with a bold title, the dark "what is included" panel
 and pill calls to action.
 Homepage order: slider, six tiles, statement over a mosaic, numbers, three domains,
 services on a slate panel (an accordion with a "Discuss ..." link each), founder with
-credentials, five senses as cards with a cited finding each, Dr Gutsy on the teal band,
+credentials, five senses as cards with a cited finding each, Dr Gutsy on the green band,
 principles carousel, research with both white-paper series and an evidence accordion.
 Projects are a filterable grid of cards; each opens a photo viewer.
 Its heroes: the home slider pushes in slowly on the current photograph, wipes the
@@ -111,6 +112,15 @@ moves a caption from tile to tile when nobody is pointing.
 
 Samples 1 and 2 share Hanken Grotesk for body copy. All three use DM Mono for citations.
 
+**The overview page (`/`)** is drawn as an old sandstone fort at dusk, in CSS and inline
+SVG: battlements, corner towers with domed pavilions and pennants (1280px and wider),
+a carved frieze, and three shuttered windows, one per sample, each over a stone tablet
+with the sample's description, palette and three page links. The shutters stand ajar,
+open further when pointed at, and swing wide when a window or one of its page links is
+chosen; the view through the window then grows to fill the screen, the sample's own
+ground colour and name appear, and the sample loads. Under reduced motion, and for
+modified clicks (new tab), the links navigate plainly.
+
 ## Where things live
 
 ```
@@ -120,11 +130,13 @@ src/
     fonts.ts          next/font/local definitions
     globals.css       Tailwind import, design tokens, .theme-one / -two / -three scopes,
                       shape classes (.arch for Sample 2; .hl and .cut for Sample 3)
-    page.tsx          overview of the three samples
+    page.tsx          overview of the three samples (data only; renders the fort)
     1/                Sample 1 routes and layout
     2/                Sample 2 routes and layout
     3/                Sample 3 routes and layout
   components/
+    overview/         Fort (the overview scene and its window transition) and
+                      fort.css (plain stylesheet, `fort-` prefixed classes)
     shared/           Pic (image frame), Motion (Reveal, Parallax, ScrollText),
                       Scroller (every horizontal strip), Triad (mark and diagram),
                       SampleSwitcher (review-only)
@@ -188,9 +200,10 @@ scripts/
   weight (`<strong>`) plus the accent colour, Sample 3 the highlighter (`<Hl>`). Never
   mix a second family in. In Sample 3, use the highlighter on roughly one headline per
   screen, not every heading.
-- **Sample 3's teal is a fill, not a text colour.** `--accent` goes behind dark text
-  (highlighter, pills, tiles). For teal text on white or cream use `--accent-ink`
-  (`text-accent-ink`), which is dark enough to read. White text never sits on teal.
+- **Sample 3's green is a fill, not a text colour.** `--accent` (`#9ACA28`) goes behind
+  dark text (highlighter, pills, tiles). For green text on white or cream use
+  `--accent-ink` (`text-accent-ink`), the same green taken dark enough to read. White
+  text never sits on the green.
 - **Sticky content inside a Sample 2 `Sheet`** works because the sheet uses
   `overflow-clip`, not `overflow-hidden`. Keep it that way.
 - **Auto-moving pieces pause on hover and on keyboard focus only.** A mouse click on a
@@ -207,6 +220,15 @@ scripts/
 - **Pointer effects are mouse only and optional.** Parallax, tilt and the torch read
   `pointerType === "mouse"`, are skipped under reduced motion, and every hero works
   without them on touch.
+- **CSS Modules do not work in this project.** The Turbopack rule in `next.config.ts`
+  sends every `.css` file through the Tailwind loader as ordinary CSS, so a
+  `*.module.css` import yields no class names and nothing is styled. For a component
+  that needs its own stylesheet, import a plain `.css` file and prefix its classes
+  (see `components/overview/fort.css`).
+- **Pages stay alive after you leave them.** With Cache Components, Next hides the
+  previous route instead of unmounting it, so its React state survives a Back. Reset
+  anything transient (an open overlay, a running transition) in a `useLayoutEffect`
+  cleanup, as `Fort` does; otherwise Back returns to the overlay.
 - **Do not import `components/two/ui.tsx` into a client component.** It imports `Pic`,
   which would ship the whole image manifest to the browser. Pass server-rendered pieces
   (buttons, the seal) into client heroes as props instead.
@@ -326,6 +348,22 @@ Defined in `.env.example`. Copy to `.env.local` locally; add the same keys in Ve
   on desktop, and that every Sample 1 headline and photograph is revealed on desktop
   and at phone width. Production build passes.
 
+### 2026-11-13, Sample 3 in green, overview redrawn as a fort
+
+- **Sample 3 accent changed to `#9ACA28`** at the client's request, replacing the light
+  teal. Only the tokens in `.theme-three` changed (`--accent`, `--on-accent`,
+  `--accent-ink`, `--tint`, `--accent-soft`), so every highlighter, pill, tile, band,
+  header block and focus ring follows. Nothing else in Sample 3 was touched.
+- **Overview page redrawn as an old fort** with a window-opening transition into each
+  sample (`components/overview/Fort.tsx`, `fort.css`), as described under "The three
+  directions". The page copy is the same except for the instruction sentence and the
+  Sample 1 and 3 descriptions, which now match what those samples are.
+- Found on the way: CSS Modules are not generated in this project (see Conventions),
+  and Next keeps the overview alive after navigation, so the transition is reset when
+  the page is hidden.
+- Tests: 89 checks pass, including the shutters, the full window transition, the reset
+  on Back, and a tablet link opening its own window. Production build passes.
+
 ## Open items for the client
 
 - **Professional portraits of Dr Shruti** (2023 to 2025 shoots) were not in the
@@ -371,5 +409,6 @@ Defined in `.env.example`. Copy to `.env.local` locally; add the same keys in Ve
 ## Before going live
 
 - Remove `robots: { index: false }` in `src/app/layout.tsx`.
-- Remove `SampleSwitcher` and the unused sample, and move the chosen sample to `/`.
+- Remove `SampleSwitcher`, the fort overview (`components/overview/`) and the unused
+  samples, and move the chosen sample to `/`.
 - Build the remaining five pages and the contact form (see content master, Pages 3 to 8).
