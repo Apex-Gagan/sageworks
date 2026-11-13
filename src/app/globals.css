@@ -5,7 +5,7 @@
  * Each sample is scoped by a class on its layout wrapper:
  *   .theme-one  Sample 1 "Still"   light, editorial, sharp corners
  *   .theme-two  Sample 2 "Canopy"  dark forest, marigold accent, circles and arches
- *   .theme-three Sample 3 "Daylight" white and cream, slate ink, teal highlighter, pill buttons
+ *   .theme-three Sample 3 "Daylight" white and cream, slate ink, green highlighter (#9ACA28), pill buttons
  * Swap --accent / --fg here once the approved Sagework green is confirmed.
  */
 
@@ -130,14 +130,16 @@
   --fg: #151b25;
   --muted: #5a6270;
   --line: rgb(21 27 37 / 0.13);
-  --accent: #66d3c4;
-  --on-accent: #10212a;
-  --accent-ink: #0b7d72;
+  /* Accent set by the client: #9ACA28. It is a fill behind dark text; the ink
+     version is the same green taken dark enough to read as text on white. */
+  --accent: #9aca28;
+  --on-accent: #17210b;
+  --accent-ink: #4b6a0d;
   --deep: #1f2a36;
   --on-deep: #f4f6f7;
   --on-deep-muted: #aeb8c2;
-  --tint: #e3f6f3;
-  --accent-soft: #7adccf;
+  --tint: #eff7dc;
+  --accent-soft: #b6da5f;
   --display: var(--font-gsf), ui-sans-serif, system-ui, sans-serif;
   --media-radius: 10px;
   --control-radius: 999px;
@@ -228,7 +230,7 @@ body {
 }
 /* The same highlighter, drawn in from the left when a hero headline arrives.
    The words start in the surrounding text colour and take the ink colour as
-   the teal reaches them, so they stay readable on a photograph. */
+   the green reaches them, so they stay readable on a photograph. */
 .hl-wipe {
   background: linear-gradient(var(--accent), var(--accent)) no-repeat left center / 0% 100%;
   padding: 0.02em 0.2em 0.06em;

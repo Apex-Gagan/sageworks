@@ -4,7 +4,7 @@ import { ArrowRight } from "@phosphor-icons/react/dist/ssr";
 
 /**
  * Sample 3 "Daylight" building blocks, modelled on mindvalley.com and
- * drchatterjee.com. Bold sans headings, white and cream grounds, one teal
+ * drchatterjee.com. Bold sans headings, white and cream grounds, one green
  * accent used as a highlighter block (.hl), pill buttons, 10px photographs,
  * and cards with one generous corner (.cut).
  */
@@ -60,7 +60,7 @@ export function Pill({
   );
 }
 
-/** The highlighter: a teal block behind the words that matter. */
+/** The highlighter: a green block behind the words that matter. */
 export function Hl({ children }: { children: ReactNode }) {
   return <span className="hl">{children}</span>;
 }

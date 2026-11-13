@@ -10,7 +10,7 @@ import { navItems } from "@/content/nav";
 
 /**
  * Sample 3 header. White bar, small capitals for the links, the current page
- * sits in a teal block, and the call to action is an outlined pill.
+ * sits in a green block, and the call to action is an outlined pill.
  */
 export function HeaderThree() {
   const pathname = usePathname() ?? "/3";
