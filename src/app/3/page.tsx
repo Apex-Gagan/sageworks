@@ -331,7 +331,7 @@ export default function HomeThree() {
         </Wrap3>
       </section>
 
-      {/* 9. Dr Gutsy on the teal band */}
+      {/* 9. Dr Gutsy on the green band */}
       <section id="gutsy" className="scroll-mt-24">
         <Wrap3 className="py-16 md:py-24">
           <div className="grid gap-10 rounded-[14px] bg-accent p-7 text-on-accent md:p-12 lg:grid-cols-12 lg:items-center lg:p-16">
