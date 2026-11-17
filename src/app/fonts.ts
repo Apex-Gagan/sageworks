@@ -1,73 +1,29 @@
 import localFont from "next/font/local";
 
 /**
- * All fonts are self-hosted from src/fonts (SIL Open Font License).
- * Sample 1 display: Cormorant Garamond. Sample 2 display: Bricolage Grotesque.
- * Sample 3 (display and body): Google Sans Flex.
- * Shared body for Samples 1 and 2: Hanken Grotesk. Shared mono: DM Mono.
+ * The brand manual names Nantes (titles) and Lota Grotesque (body). Both are paid
+ * typefaces and Sagework does not hold web licences yet, so these two open-licence
+ * stand-ins carry the design until it does:
+ *   Newsreader      in place of Nantes          (--font-serif)
+ *   Hanken Grotesk  in place of Lota Grotesque  (--font-sans)
+ * To switch, add the licensed woff2 files to src/fonts and change the two `src`
+ * entries below. Nothing else in the project names a typeface.
  */
 
-export const cormorant = localFont({
+export const serif = localFont({
   src: [
-    {
-      path: "../fonts/cormorant-garamond-latin-wght-normal.woff2",
-      weight: "300 700",
-      style: "normal",
-    },
-    {
-      path: "../fonts/cormorant-garamond-latin-wght-italic.woff2",
-      weight: "300 700",
-      style: "italic",
-    },
+    { path: "../fonts/newsreader-latin-wght-normal.woff2", weight: "200 800", style: "normal" },
+    { path: "../fonts/newsreader-latin-wght-italic.woff2", weight: "200 800", style: "italic" },
   ],
-  variable: "--font-cormorant",
+  variable: "--font-serif",
   display: "swap",
 });
 
-export const bricolage = localFont({
-  src: "../fonts/bricolage-grotesque-latin-opsz-normal.woff2",
-  weight: "200 800",
-  variable: "--font-bricolage",
-  display: "swap",
-});
-
-export const googleSansFlex = localFont({
-  src: "../fonts/google-sans-flex-latin-wght-normal.woff2",
-  weight: "100 1000",
-  variable: "--font-gsf",
-  display: "swap",
-});
-
-export const hanken = localFont({
+export const sans = localFont({
   src: [
-    {
-      path: "../fonts/hanken-grotesk-latin-wght-normal.woff2",
-      weight: "100 900",
-      style: "normal",
-    },
-    {
-      path: "../fonts/hanken-grotesk-latin-wght-italic.woff2",
-      weight: "100 900",
-      style: "italic",
-    },
+    { path: "../fonts/hanken-grotesk-latin-wght-normal.woff2", weight: "100 900", style: "normal" },
+    { path: "../fonts/hanken-grotesk-latin-wght-italic.woff2", weight: "100 900", style: "italic" },
   ],
-  variable: "--font-hanken",
-  display: "swap",
-});
-
-export const dmMono = localFont({
-  src: [
-    {
-      path: "../fonts/dm-mono-latin-400-normal.woff2",
-      weight: "400",
-      style: "normal",
-    },
-    {
-      path: "../fonts/dm-mono-latin-500-normal.woff2",
-      weight: "500",
-      style: "normal",
-    },
-  ],
-  variable: "--font-dm-mono",
+  variable: "--font-sans",
   display: "swap",
 });

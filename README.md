@@ -1,22 +1,27 @@
 # Sagework website
 
-Three design directions for the Sagework website, each with a homepage, founder page and
-projects page, built with Next.js, TypeScript and Tailwind CSS.
+The Sagework website: one design, built to the Sagework brand manual and Dr Shruti Pai's
+answers to the build questionnaire. Next.js, TypeScript and Tailwind CSS.
 
-| Page          | Sample 1 "Still" | Sample 2 "Canopy" | Sample 3 "Daylight" |
-| ------------- | ---------------- | ----------------- | ---------------- |
-| Homepage      | `/1`             | `/2`              | `/3`             |
-| Founder page  | `/1/founder`     | `/2/founder`      | `/3/founder`     |
-| Projects page | `/1/projects`    | `/2/projects`     | `/3/projects`    |
+| Page                         | Route                 |
+| ---------------------------- | --------------------- |
+| Homepage                     | `/`                   |
+| Founder, Dr Shruti Pai       | `/founder`            |
+| Discover Sagework            | `/discover`           |
+| The Five Senses              | `/five-senses`        |
+| Simply Sage and Dr Gutsy     | `/simply-sage`        |
+| Research and evidence        | `/research`           |
+| Work with Sagework           | `/work-with-sagework` |
+| Contact us                   | `/contact`            |
+| Photo gallery                | `/gallery`            |
 
-`/` is an overview that links all nine. A small switch at the bottom of every sample page
-flips to the same page in another sample.
+White base, Sage Green (#9ACA28) leading, aqua and amber as accents and as the colours of
+the Environment and Behaviour lenses, the client's own logo artwork, italic serif
+headlines, and the leaf from the logo as watermark, bullet, loading mark and pointer
+companion.
 
-- **Still**: light sage paper, serif headings, editorial, with scroll-led motion
-  (headlines that rise, photographs that are uncovered, a gallery that pans as you scroll).
-- **Canopy**: dark forest with a marigold accent, circles and arches, immersive.
-- **Daylight**: white and cream with a green highlighter (#9ACA28), modelled on mindvalley.com
-  and drchatterjee.com: photo slider, tiles, mosaics, giant numbers, bold statements.
+Anything the client still has to supply is marked on the page itself, in the section it
+belongs to, with a dashed "Content needed" note saying what is missing and why.
 
 ## Run locally
 
@@ -36,10 +41,12 @@ With the dev server running on port 3000:
 npm run test:ui
 ```
 
-This drives a headless Chrome through every slider, selector, tab set, filter, lightbox,
-hero interaction, scroll-led section and mobile menu on all three samples (85 checks),
-and checks each route at phone width for sideways overflow. Set `CHROME_PATH` if Chrome is not in the default location, and `BASE_URL` to
-test another address.
+This drives a headless Chrome through every page (122 checks): brand rules on each page
+(white header, logo artwork, green footer, one italic headline), the hero film and the
+contrast of its white text over each photograph, the
+triad, the five senses, the phone menu, the founder chapters, the white-paper lists and
+request form, the contact form's validation, the gallery and its viewer. Set `CHROME_PATH`
+if Chrome is not in the default location, and `BASE_URL` to test another address.
 
 ## Deploy to Vercel
 
@@ -48,15 +55,18 @@ test another address.
    (`NEXT_PUBLIC_SITE_URL` set to the deployment URL, `NEXT_PUBLIC_CONTACT_EMAIL`).
 3. Deploy.
 
-The samples are marked `noindex` so search engines do not list a draft.
+The site is marked `noindex` so search engines do not list a draft.
 
 ## Editing
 
-All text lives in `src/content/`. All photographs live in `public/images/` and are
-placed with the `Pic` component. See `CLAUDE.md` for the full project notes, design
-decisions, conventions and the list of items still needed from the client.
+All text lives in `src/content/`. Photographs live in `public/images/` and are placed with
+the `Pic` component. Logo artwork lives in `src/components/brand/` and `public/brand/`.
+See `CLAUDE.md` for the full project notes, the decisions taken from the questionnaire,
+conventions and the list of items still needed from the client.
 
 ## Fonts
 
-Cormorant Garamond, Bricolage Grotesque, Google Sans Flex, Hanken Grotesk and DM Mono, self-hosted
-from `src/fonts/` under the SIL Open Font License 1.1.
+The brand manual names Nantes and Lota Grotesque, which are paid typefaces without a web
+licence yet. Until Sagework holds one, Newsreader and Hanken Grotesk stand in, self-hosted
+from `src/fonts/` under the SIL Open Font License 1.1. Switching is a two-line change in
+`src/app/fonts.ts`.

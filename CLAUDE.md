@@ -17,7 +17,7 @@ npm run dev      # local development on http://localhost:3000
 npm run build    # production build (what Vercel runs)
 npm run start    # serve the production build
 npm run lint     # eslint
-npm run test:ui  # 89 interaction checks in headless Chrome (dev server must be running;
+npm run test:ui  # 85 interaction checks in headless Chrome (dev server must be running;
                  # set BASE_URL / CHROME_PATH if not localhost:3000 / default Chrome)
 ```
 
@@ -28,7 +28,7 @@ After changing any interactive component, run `npm run test:ui` and add a check 
 
 | Route          | What it is                                     |
 | -------------- | ---------------------------------------------- |
-| `/`            | Overview: an old fort, one window per sample   |
+| `/`            | Overview page that links all nine sample pages |
 | `/1`           | Homepage, Sample 1 "Still"                     |
 | `/1/founder`   | Founder page, Sample 1                         |
 | `/1/projects`  | Projects page, Sample 1                        |
@@ -112,15 +112,6 @@ moves a caption from tile to tile when nobody is pointing.
 
 Samples 1 and 2 share Hanken Grotesk for body copy. All three use DM Mono for citations.
 
-**The overview page (`/`)** is drawn as an old sandstone fort at dusk, in CSS and inline
-SVG: battlements, corner towers with domed pavilions and pennants (1280px and wider),
-a carved frieze, and three shuttered windows, one per sample, each over a stone tablet
-with the sample's description, palette and three page links. The shutters stand ajar,
-open further when pointed at, and swing wide when a window or one of its page links is
-chosen; the view through the window then grows to fill the screen, the sample's own
-ground colour and name appear, and the sample loads. Under reduced motion, and for
-modified clicks (new tab), the links navigate plainly.
-
 ## Where things live
 
 ```
@@ -130,13 +121,11 @@ src/
     fonts.ts          next/font/local definitions
     globals.css       Tailwind import, design tokens, .theme-one / -two / -three scopes,
                       shape classes (.arch for Sample 2; .hl and .cut for Sample 3)
-    page.tsx          overview of the three samples (data only; renders the fort)
+    page.tsx          overview of the three samples
     1/                Sample 1 routes and layout
     2/                Sample 2 routes and layout
     3/                Sample 3 routes and layout
   components/
-    overview/         Fort (the overview scene and its window transition) and
-                      fort.css (plain stylesheet, `fort-` prefixed classes)
     shared/           Pic (image frame), Motion (Reveal, Parallax, ScrollText),
                       Scroller (every horizontal strip), Triad (mark and diagram),
                       SampleSwitcher (review-only)
@@ -223,12 +212,11 @@ scripts/
 - **CSS Modules do not work in this project.** The Turbopack rule in `next.config.ts`
   sends every `.css` file through the Tailwind loader as ordinary CSS, so a
   `*.module.css` import yields no class names and nothing is styled. For a component
-  that needs its own stylesheet, import a plain `.css` file and prefix its classes
-  (see `components/overview/fort.css`).
+  that needs its own stylesheet, import a plain `.css` file and prefix its classes.
 - **Pages stay alive after you leave them.** With Cache Components, Next hides the
   previous route instead of unmounting it, so its React state survives a Back. Reset
   anything transient (an open overlay, a running transition) in a `useLayoutEffect`
-  cleanup, as `Fort` does; otherwise Back returns to the overlay.
+  cleanup; otherwise Back returns to the overlay.
 - **Do not import `components/two/ui.tsx` into a client component.** It imports `Pic`,
   which would ship the whole image manifest to the browser. Pass server-rendered pieces
   (buttons, the seal) into client heroes as props instead.
@@ -348,7 +336,7 @@ Defined in `.env.example`. Copy to `.env.local` locally; add the same keys in Ve
   on desktop, and that every Sample 1 headline and photograph is revealed on desktop
   and at phone width. Production build passes.
 
-### 2026-11-13, Sample 3 in green, overview redrawn as a fort
+### 2026-11-13, Sample 3 in green, overview redrawn as a fort (fort later removed)
 
 - **Sample 3 accent changed to `#9ACA28`** at the client's request, replacing the light
   teal. Only the tokens in `.theme-three` changed (`--accent`, `--on-accent`,
@@ -363,6 +351,15 @@ Defined in `.env.example`. Copy to `.env.local` locally; add the same keys in Ve
   the page is hidden.
 - Tests: 89 checks pass, including the shutters, the full window transition, the reset
   on Back, and a tablet link opening its own window. Production build passes.
+
+### 2026-11-13, fort overview rolled back
+
+- At the client's request the fort overview was removed and `/` is again the plain
+  overview from before: three cards, each with a photograph, description, palette and
+  three page links. `components/overview/` and its four tests are gone.
+- Kept: Sample 3's green (`#9ACA28`). The overview's Sample 3 card now shows the green
+  swatch and says "green highlighter", since the old text named teal.
+- Tests: 85 checks pass. Production build passes.
 
 ## Open items for the client
 
@@ -409,6 +406,5 @@ Defined in `.env.example`. Copy to `.env.local` locally; add the same keys in Ve
 ## Before going live
 
 - Remove `robots: { index: false }` in `src/app/layout.tsx`.
-- Remove `SampleSwitcher`, the fort overview (`components/overview/`) and the unused
-  samples, and move the chosen sample to `/`.
+- Remove `SampleSwitcher` and the unused sample, and move the chosen sample to `/`.
 - Build the remaining five pages and the contact form (see content master, Pages 3 to 8).

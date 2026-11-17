@@ -1,4 +1,4 @@
-// Interaction tests for the Sagework samples.
+// Interaction tests for the Sagework website.
 // Usage: start the dev server, then `npm run test:ui`.
 // BASE_URL and CHROME_PATH can be set in the environment.
 import puppeteer from "puppeteer-core";
@@ -12,7 +12,7 @@ const chrome =
       ? "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
       : "/usr/bin/google-chrome");
 const results = [];
-const ok = (name, pass, detail = "") => results.push({ name, pass: !!pass, detail: String(detail).slice(0, 160) });
+const ok = (name, pass, detail = "") => results.push({ name, pass: !!pass, detail: String(detail).slice(0, 180) });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const browser = await puppeteer.launch({
@@ -37,34 +37,6 @@ async function open(path, width = 1440, height = 900) {
 const into = (page, sel) =>
   page.evaluate((s) => document.querySelector(s)?.scrollIntoView({ block: "center", behavior: "instant" }), sel);
 
-async function scrollers(page, label) {
-  const out = await page.evaluate(async () => {
-    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-    const res = [];
-    for (const r of document.querySelectorAll('[role="region"][aria-label]')) {
-      if (r.offsetParent === null) continue; // not rendered at this width
-      r.scrollIntoView({ block: "center", behavior: "instant" });
-      await wait(500);
-      const fwd = r.parentElement.querySelector('button[aria-label$="forward"]');
-      const back = r.parentElement.querySelector('button[aria-label$="back"]');
-      const max = r.scrollWidth - r.clientWidth;
-      if (!fwd) {
-        res.push({ name: r.getAttribute("aria-label"), fits: max <= 4, max });
-        continue;
-      }
-      const a = r.scrollLeft;
-      fwd.click();
-      await wait(1300);
-      const b = r.scrollLeft;
-      back.click();
-      await wait(1300);
-      res.push({ name: r.getAttribute("aria-label"), moved: Math.abs(b - a) > 100, back: Math.abs(r.scrollLeft - b) > 100, max });
-    }
-    return res;
-  });
-  for (const s of out) ok(`${label} slider "${s.name}"`, s.fits ?? (s.moved && s.back), JSON.stringify(s));
-}
-
 /** Scroll the whole page slowly enough for every scroll-triggered reveal to fire. */
 async function walk(page) {
   await page.evaluate(async () => {
@@ -72,515 +44,350 @@ async function walk(page) {
       window.scrollTo({ top: y, behavior: "instant" });
       await new Promise((r) => setTimeout(r, 140));
     }
+    window.scrollTo({ top: 0, behavior: "instant" });
   });
-  await sleep(2600);
+  await sleep(1100);
 }
 
-/** Headline words still below their mask, and photographs still fully covered. */
-const unrevealed = (page) =>
-  page.evaluate(() => {
-    const ty = (el) => new DOMMatrix(getComputedStyle(el).transform).m42;
-    const words = [...document.querySelectorAll("h1 span.inline-block, h2 span.inline-block, p span.inline-block")].filter(
-      (el) => el.offsetParent && Math.abs(ty(el)) > 1,
-    ).length;
-    const curtains = [...document.querySelectorAll("div")].filter(
-      (el) => el.offsetParent && /inset\(100%/.test(getComputedStyle(el).clipPath),
-    ).length;
-    return { words, curtains };
-  });
+const PAGES = ["/", "/discover", "/founder", "/five-senses", "/simply-sage", "/research", "/work-with-sagework", "/contact", "/gallery"];
 
-/* ------------------------------ Sample 2 home ----------------------------- */
-{
-  const { page, errors } = await open("/2");
-
-  // hero: triad discs, torch, cycling capsule
-  await sleep(1800);
-  await page.click('[data-hero="home-two"] button[aria-label="Show Behaviour"]');
-  await sleep(700);
-  const hd = await page.evaluate(() => {
-    const hero = document.querySelector('[data-hero="home-two"]');
-    return {
-      pressed: hero.querySelector('button[aria-label="Show Behaviour"]').getAttribute("aria-pressed"),
-      label: hero.querySelector("[aria-live] strong")?.textContent,
-    };
-  });
-  ok("S2 home hero triad disc selects Behaviour", hd.pressed === "true" && hd.label === "Behaviour", JSON.stringify(hd));
-  await page.mouse.move(400, 300, { steps: 8 });
-  await sleep(1500);
-  const torch = await page.evaluate(() => {
-    const el = document.querySelector("[data-torch]");
-    const css = el.style.maskImage || el.style.webkitMaskImage || getComputedStyle(el).maskImage;
-    const m = css.match(/at ([\d.]+)px ([\d.]+)px/);
-    return m ? [Number(m[1]), Number(m[2])] : null;
-  });
-  ok("S2 home hero torch follows the pointer", torch && Math.abs(torch[0] - 400) < 12 && Math.abs(torch[1] - 300) < 12, JSON.stringify(torch));
-  const capIdx = () =>
-    page.evaluate(() => [...document.querySelectorAll('[data-hero="home-two"] h1 img')].findIndex((im) => im.className.includes("opacity-100")));
-  const c0 = await capIdx();
-  await sleep(3600);
-  const c1 = await capIdx();
-  ok("S2 home hero photo capsule cycles", c1 >= 0 && c0 !== c1, `${c0} => ${c1}`);
-
-  // triad circles
-  await into(page, 'button[aria-label^="Environment"]');
-  await sleep(400);
-  await page.click('button[aria-label^="Environment"]');
-  await sleep(900);
-  const t = await page.evaluate(() => ({
-    pressed: document.querySelector('button[aria-label^="Environment"]').getAttribute("aria-pressed"),
-    heading: [...document.querySelectorAll("h3")].some((h) => h.textContent.trim() === "Environment"),
-  }));
-  ok("S2 home triad circle selects Environment", t.pressed === "true" && t.heading, JSON.stringify(t));
-
-  // auto ribbon drifts (pointer parked away from it, since hover pauses it)
-  await page.mouse.move(4, 4);
-  const drift = await page.evaluate(async () => {
-    const r = document.querySelector('[role="region"][aria-label="selected environments"]');
-    r.scrollIntoView({ block: "center", behavior: "instant" });
-    await new Promise((x) => setTimeout(x, 600));
-    const a = r.scrollLeft;
-    await new Promise((x) => setTimeout(x, 1500));
-    return r.scrollLeft - a;
-  });
-  ok("S2 home project ribbon drifts on its own", drift > 15, drift);
-  await scrollers(page, "S2 home");
-
-  // senses
-  const s = await page.evaluate(async () => {
-    const btns = [...document.querySelectorAll("#senses ul button[aria-expanded]")];
-    btns[2].scrollIntoView({ block: "center", behavior: "instant" });
-    btns[2].click();
-    await new Promise((x) => setTimeout(x, 500));
-    return btns.map((b) => b.getAttribute("aria-expanded")).join(",");
-  });
-  ok("S2 home senses list opens third sense", s === "false,false,true,false,false", s);
-
-  // question rotator
-  const q = await page.evaluate(async () => {
-    const dots = [...document.querySelectorAll("#gutsy button[aria-pressed]")];
-    const before = document.querySelector("#gutsy [aria-live] p")?.textContent;
-    dots[1].click();
-    await new Promise((x) => setTimeout(x, 1700));
-    return [before?.slice(0, 20), document.querySelector("#gutsy [aria-live] p")?.textContent.slice(0, 20), dots[1].getAttribute("aria-pressed")];
-  });
-  ok("S2 home Dr Gutsy question changes", q[0] !== q[1] && q[2] === "true", q.join(" => "));
-
-  const anchors = await page.evaluate(() =>
-    ["about", "work", "senses", "gutsy", "research"].filter((id) => !document.getElementById(id)),
-  );
-  ok("S2 home nav anchors exist", anchors.length === 0, anchors.join(","));
-  ok("S2 home no runtime errors", errors.length === 0, errors.join(" | "));
-  await page.close();
-}
-
-/* ----------------------------- Sample 2 founder --------------------------- */
-{
-  const { page, errors } = await open("/2/founder");
-
-  // hero: role pills preview their chapter in the portrait frame
-  await sleep(1500);
-  const pills = await page.$$("[data-role-pill]");
-  await pills[3].hover();
-  await sleep(800);
-  const rp = await page.evaluate(() => ({
-    maxim: document.querySelector("[data-role-maxim]")?.textContent,
-    broken: [...document.querySelectorAll("[data-role-pill]")].filter((a) => !document.querySelector(a.getAttribute("href"))).length,
-  }));
-  await page.mouse.move(700, 30);
-  await sleep(800);
-  const cleared = await page.evaluate(() => !document.querySelector("[data-role-maxim]"));
-  ok(
-    "S2 founder hero role pill previews its chapter and clears",
-    pills.length === 4 && rp.maxim === "The environment shapes biology." && rp.broken === 0 && cleared,
-    JSON.stringify({ ...rp, cleared }),
-  );
-
-  await scrollers(page, "S2 founder");
-  const p = await page.evaluate(async () => {
-    const ids = ["business-leader", "scientist", "designer", "writer", "dr-gutsy", "global", "lived"];
-    const missing = ids.filter((id) => !document.getElementById(id));
-    document.getElementById("global").scrollIntoView({ block: "start", behavior: "instant" });
-    await new Promise((x) => setTimeout(x, 900));
-    const active = document.querySelector('nav[aria-label="Chapters"] a[aria-current]')?.textContent;
-    const nav = document.querySelector('nav[aria-label="Chapters"]').getBoundingClientRect();
-    return { missing, active, navTop: Math.round(nav.top) };
-  });
-  ok("S2 founder chapter anchors exist", p.missing.length === 0, p.missing.join(","));
-  ok("S2 founder chapter pills follow and stay pinned", p.active === "Global Perspective" && p.navTop > 60 && p.navTop < 130, JSON.stringify(p));
-  await into(page, 'button[aria-label^="Behaviour"]');
-  await page.click('button[aria-label^="Behaviour"]');
-  await sleep(800);
-  const l = await page.evaluate(() => document.querySelector('button[aria-label^="Behaviour"]').getAttribute("aria-pressed"));
-  ok("S2 founder lens circle selects Behaviour", l === "true", l);
-  ok("S2 founder no runtime errors", errors.length === 0, errors.join(" | "));
-  await page.close();
-}
-
-/* ----------------------------- Sample 2 projects -------------------------- */
-{
-  const { page, errors } = await open("/2/projects");
-
-  // hero: a button per kind of place swaps the backdrop
-  await sleep(1500);
-  await page.click('[data-place="academic"]');
-  await sleep(900);
-  const ph = await page.evaluate(() => ({
-    pressed: document.querySelector('[data-place="academic"]').getAttribute("aria-pressed"),
-    caption: document.querySelector("[data-place-caption]")?.textContent,
-  }));
-  ok("S2 projects hero place button swaps the backdrop", ph.pressed === "true" && /Academic spaces/.test(ph.caption ?? ""), JSON.stringify(ph));
-  await page.mouse.move(700, 30);
-  await sleep(6900);
-  const place = await page.evaluate(() => document.querySelector('[data-place][aria-pressed="true"]')?.dataset.place);
-  ok("S2 projects hero moves on by itself after a click", place && place !== "academic", place);
-
-  const f = await page.evaluate(async () => {
-    const tabs = [...document.querySelectorAll('[role="tab"]')];
-    const out = [];
-    for (const t of tabs) {
-      t.click();
-      await new Promise((x) => setTimeout(x, 400));
-      out.push(document.querySelectorAll('button[aria-label^="Open photograph"]').length);
-    }
-    tabs[0].click();
-    await new Promise((x) => setTimeout(x, 400));
-    return out;
-  });
-  ok("S2 projects gallery filters change the wall", f[0] > f[1] && f[1] > 0 && f[2] > 0 && f[3] > 0 && f[4] > 0, f.join(","));
-  await into(page, 'button[aria-label^="Open photograph"]');
-  await page.click('button[aria-label^="Open photograph"]');
-  await sleep(700);
-  const lb1 = await page.evaluate(() => document.querySelector('[role="dialog"]')?.getAttribute("aria-label"));
-  await page.keyboard.press("ArrowRight");
-  await sleep(600);
-  const lb2 = await page.evaluate(() => document.querySelector('[role="dialog"]')?.getAttribute("aria-label"));
-  await page.keyboard.press("Escape");
-  await sleep(600);
-  const lb3 = await page.evaluate(() => !!document.querySelector('[role="dialog"]'));
-  ok("S2 projects lightbox opens, steps with arrow key, closes with Escape", lb1 && lb2 && lb1 !== lb2 && !lb3, `${lb1} | ${lb2} | open:${lb3}`);
-
-  const rows = await page.$$("li > button[aria-expanded]");
-  await rows[3].evaluate((el) => el.scrollIntoView({ block: "center", behavior: "instant" }));
-  await sleep(300);
-  await rows[3].click();
-  await sleep(900);
-  const ex = await page.evaluate(() => [...document.querySelectorAll("li > button[aria-expanded]")].map((b) => b.getAttribute("aria-expanded")).join(","));
-  ok("S2 projects list opens one project note at a time", ex.split(",").filter((v) => v === "true").length === 1 && ex.split(",")[3] === "true", ex);
-  const box = await rows[6].boundingBox();
-  await page.mouse.move(box.x + 300, box.y + box.height / 2);
-  await sleep(700);
-  const pv = await page.evaluate(() => {
-    const el = document.querySelector('div[aria-hidden="true"].arch');
-    return el ? getComputedStyle(el).opacity : "none";
-  });
-  ok("S2 projects pointer preview appears on hover", pv === "1", pv);
-  await scrollers(page, "S2 projects");
-  ok("S2 projects no runtime errors", errors.length === 0, errors.join(" | "));
-  await page.close();
-}
-
-/* ------------------------------ Sample 3 home ----------------------------- */
-{
-  const { page, errors } = await open("/3");
-  const head = await page.evaluate(() => ({
-    links: document.querySelectorAll('header nav[aria-label="Primary"] a').length,
-    tab: !!document.querySelector('a[class*="vertical-rl"]'),
-  }));
-  ok("S3 header shows seven links and the side tab on desktop", head.links === 7 && head.tab, JSON.stringify(head));
-
-  const title = () => page.evaluate(() => document.querySelector('section[aria-roledescription="carousel"] [aria-live]')?.textContent.slice(0, 40));
-  const t0 = await title();
-  await page.click('button[aria-label="Next slide"]');
-  await sleep(1300);
-  const t1 = await title();
-  ok("S3 hero next button changes the slide", t0 !== t1, `${t0} => ${t1}`);
-  await page.mouse.move(700, 30);
-  await sleep(8200);
-  const t2 = await title();
-  ok("S3 hero advances on its own after a click", t2 !== t1, `${t1} => ${t2}`);
-  await sleep(1300);
-  const wipe = await page.evaluate(() => getComputedStyle(document.querySelector('section[aria-roledescription="carousel"] .hl-wipe')).backgroundSize);
-  ok("S3 hero highlighter finishes its wipe", wipe === "100% 100%", wipe);
-  const thumbs = await page.$$("[data-slide-thumb]");
-  await thumbs[3].click();
-  await sleep(1300);
-  const t3 = await title();
-  const thumbOn = await thumbs[3].evaluate((b) => b.getAttribute("aria-pressed"));
-  await page.keyboard.press("ArrowLeft");
-  await sleep(1300);
-  const t4 = await title();
-  ok("S3 hero thumbnail and arrow key change the slide", thumbs.length === 4 && thumbOn === "true" && t3 !== t2 && t4 !== t3, `${t2} => ${t3} => ${t4}`);
-
-  const svc = await page.evaluate(async () => {
-    const btns = [...document.querySelectorAll("#work li > button[aria-expanded]")];
-    btns[3].scrollIntoView({ block: "center", behavior: "instant" });
-    btns[3].click();
-    await new Promise((x) => setTimeout(x, 800));
-    const link = btns[3].parentElement.querySelector('a[href^="mailto:"]');
-    return {
-      exp: btns.map((b) => b.getAttribute("aria-expanded")).join(","),
-      label: link?.textContent.trim(),
-      href: decodeURIComponent(link?.getAttribute("href") ?? ""),
-    };
-  });
-  ok(
-    "S3 services list opens one service with its own enquiry link",
-    svc.exp === "false,false,false,true,false,false" && svc.label === "Discuss Education and Knowledge" && svc.href.includes("Enquiry: Education and Knowledge"),
-    JSON.stringify(svc),
-  );
-
-  const sense = await page.evaluate(async () => {
-    const d = document.querySelector("#senses details");
-    d.scrollIntoView({ block: "center", behavior: "instant" });
-    d.querySelector("summary").click();
-    await new Promise((x) => setTimeout(x, 300));
-    return { open: d.open, text: d.textContent };
-  });
-  ok("S3 sense card reveals its cited finding", sense.open && /Source:/.test(sense.text), sense.text.slice(0, 80));
-  await scrollers(page, "S3 home");
-
-  const pr = await page.evaluate(async () => {
-    const next = document.querySelector('button[aria-label="Next principle"]');
-    next.scrollIntoView({ block: "center", behavior: "instant" });
-    const read = () => document.querySelector("figure blockquote")?.textContent;
-    const before = read();
-    next.click();
-    await new Promise((x) => setTimeout(x, 1200));
-    return [before, read()];
-  });
-  ok("S3 principles carousel steps to the next card", pr[0] && pr[1] && pr[0] !== pr[1], pr.join(" => "));
-
-  const acc = await page.evaluate(async () => {
-    const btns = [...document.querySelectorAll("#research ul > li > button[aria-expanded]")];
-    btns[1].scrollIntoView({ block: "center", behavior: "instant" });
-    btns[1].click();
-    await new Promise((x) => setTimeout(x, 700));
-    return btns.map((b) => b.getAttribute("aria-expanded")).join(",");
-  });
-  ok("S3 evidence accordion opens one item at a time", acc === "false,true,false", acc);
-
-  const anchors = await page.evaluate(() =>
-    ["about", "work", "senses", "gutsy", "research"].filter((id) => !document.getElementById(id)),
-  );
-  ok("S3 home nav anchors exist", anchors.length === 0, anchors.join(","));
-  ok("S3 home no runtime errors", errors.length === 0, errors.join(" | "));
-  await page.close();
-}
-
-/* ----------------------------- Sample 3 founder --------------------------- */
-{
-  const { page, errors } = await open("/3/founder");
-
-  // hero: role chips show their chapter's principle on the portrait card
-  await sleep(1500);
-  const chips = await page.$$("[data-role-chip]");
-  await chips[0].hover();
-  await sleep(700);
-  const pr1 = await page.evaluate(() => document.querySelector("[data-role-principle]")?.textContent);
-  await page.mouse.move(700, 30);
-  await sleep(800);
-  const pr2 = await page.evaluate(() => ({
-    gone: !document.querySelector("[data-role-principle]"),
-    badge: document.querySelector('[data-hero="founder-three"] [aria-live]')?.textContent,
-    broken: [...document.querySelectorAll("[data-role-chip]")].filter((a) => !document.querySelector(a.getAttribute("href"))).length,
-  }));
-  ok(
-    "S3 founder hero role chip shows its principle, then the credential returns",
-    chips.length === 4 && /Ideas must work\./.test(pr1 ?? "") && pr2.gone && /PhD/.test(pr2.badge ?? "") && pr2.broken === 0,
-    `${pr1} | ${JSON.stringify(pr2)}`,
-  );
-  const p = await page.evaluate(() => ({
-    missing: ["business-leader", "scientist", "designer", "writer", "dr-gutsy", "global", "lived"].filter((id) => !document.getElementById(id)),
-    active: document.querySelector('header a[aria-current="page"]')?.textContent.trim(),
-    h1: document.querySelectorAll("h1").length,
-  }));
-  ok("S3 founder chapter anchors exist and header marks Founder", p.missing.length === 0 && p.active === "Founder" && p.h1 === 1, JSON.stringify(p));
-  ok("S3 founder no runtime errors", errors.length === 0, errors.join(" | "));
-  await page.close();
-}
-
-/* ----------------------------- Sample 3 projects -------------------------- */
-{
-  const { page, errors } = await open("/3/projects");
-
-  // hero: the mosaic focuses the pointed photograph, and moves its caption on by itself
-  await sleep(1500);
-  const tiles = await page.$$("[data-mosaic-tile]");
-  await tiles[2].hover();
-  await sleep(900);
-  const mo = await page.evaluate(() => {
-    const t = [...document.querySelectorAll("[data-mosaic-tile]")];
-    return { lit: t.map((a) => a.dataset.lit).join(","), dim: getComputedStyle(t[0].querySelector("img")).opacity };
-  });
-  ok(
-    "S3 projects hero mosaic focuses the pointed photograph",
-    mo.lit === "false,false,true,false,false,false,false,false" && Number(mo.dim) < 0.6,
-    JSON.stringify(mo),
-  );
-  await page.mouse.move(700, 30);
-  const litAt = () => page.evaluate(() => [...document.querySelectorAll("[data-mosaic-tile]")].findIndex((a) => a.dataset.lit === "true"));
-  await sleep(400);
-  const l0 = await litAt();
-  await sleep(3100);
-  const l1 = await litAt();
-  ok("S3 projects hero mosaic caption moves on by itself", l0 >= 0 && l1 >= 0 && l0 !== l1, `${l0} => ${l1}`);
-  const c = await page.evaluate(async () => {
-    const tabs = [...document.querySelectorAll('#browse [role="tab"]')];
-    const out = [];
-    for (const t of tabs) {
-      t.scrollIntoView({ block: "center", behavior: "instant" });
-      t.click();
-      await new Promise((x) => setTimeout(x, 700));
-      out.push(document.querySelectorAll("#browse article").length);
-    }
-    tabs[0].click();
-    await new Promise((x) => setTimeout(x, 700));
-    return out;
-  });
-  ok("S3 projects filters show 12, 5, 3, 3 and 1 projects", c.join(",") === "12,5,3,3,1", c.join(","));
-
-  await into(page, "button[data-open]");
-  await sleep(300);
-  await page.click("button[data-open]");
-  await sleep(900);
-  const cap = () => page.evaluate(() => document.querySelector('[role="dialog"] [aria-live]')?.textContent);
-  const v0 = await cap();
-  await page.keyboard.press("ArrowRight");
-  await sleep(700);
-  const v1 = await cap();
-  await page.evaluate(() => document.querySelectorAll('[role="dialog"] [role="group"] button')[3]?.click());
-  await sleep(700);
-  const v2 = await cap();
-  const locked = await page.evaluate(() => document.body.style.overflow);
-  await page.keyboard.press("Escape");
-  await sleep(700);
-  const closed = await page.evaluate(() => !document.querySelector('[role="dialog"]') && document.body.style.overflow === "");
-  ok(
-    "S3 project viewer opens, steps by arrow key and thumbnail, closes with Escape",
-    v0 && v1 && v2 && v0 !== v1 && v1 !== v2 && locked === "hidden" && closed,
-    `${v0} | ${v1} | ${v2} | closed:${closed}`,
-  );
-
-  const tn = await page.evaluate(async () => {
-    const fig = [...document.querySelectorAll("figure")].find((f) => f.querySelector('[role="group"][aria-label$="then or now"]'));
-    fig.scrollIntoView({ block: "center", behavior: "instant" });
-    const label = () => fig.querySelector("figcaption [aria-live]")?.textContent;
-    const before = label();
-    fig.querySelector('button[aria-pressed="false"]').click();
-    await new Promise((x) => setTimeout(x, 800));
-    return [before, label()];
-  });
-  ok("S3 projects then/now toggle switches", tn[0] !== tn[1], tn.join(" => "));
-  await scrollers(page, "S3 projects");
-  ok("S3 projects no runtime errors", errors.length === 0, errors.join(" | "));
-  await page.close();
-}
-
-/* -------------------------------- Sample 1 -------------------------------- */
-{
-  const { page, errors } = await open("/1");
-  await walk(page);
-  const u = await unrevealed(page);
-  ok("S1 home every headline and photograph is revealed after scrolling", u.words === 0 && u.curtains === 0, JSON.stringify(u));
-  const counts = await page.evaluate(() => [...document.querySelectorAll("span.tabular-nums")].map((e) => e.textContent).join("|"));
-  ok("S1 home figures finish counting at their real values", counts === "20+|110,000|PhD|5", counts);
-
-  const step = await page.evaluate(async () => {
-    document.querySelector('[data-step="1"]').scrollIntoView({ block: "center", behavior: "instant" });
-    await new Promise((r) => setTimeout(r, 900));
-    return [...document.querySelectorAll("[data-step]")].map((e) => (e.className.includes("lg:opacity-100") ? 1 : 0)).join("");
-  });
-  ok("S1 home scroll steps follow the reader", step === "010", step);
-
-  const pin = await page.evaluate(async () => {
-    const sec = document.querySelector("[data-pinned-gallery]");
-    const top = sec.getBoundingClientRect().top + window.scrollY;
-    const read = () => new DOMMatrix(getComputedStyle(sec.querySelector(".w-max")).transform).m41;
-    window.scrollTo({ top: top + 10, behavior: "instant" });
-    await new Promise((r) => setTimeout(r, 500));
-    const a = read();
-    window.scrollTo({ top: top + (sec.offsetHeight - window.innerHeight) * 0.6, behavior: "instant" });
-    await new Promise((r) => setTimeout(r, 500));
-    return [Math.round(a), Math.round(read()), sec.offsetHeight > window.innerHeight * 1.5];
-  });
-  ok("S1 home pinned gallery pans sideways as the page scrolls", pin[2] && pin[1] < pin[0] - 300, pin.join(","));
-
-  const nav = await page.evaluate(async () => {
-    const h = document.querySelector("header");
-    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-    window.scrollTo({ top: 1400, behavior: "instant" });
-    await wait(200);
-    window.scrollTo({ top: 1700, behavior: "instant" });
-    await wait(700);
-    const down = h.className.includes("-translate-y-full");
-    window.scrollTo({ top: 1500, behavior: "instant" });
-    await wait(700);
-    const up = !h.className.includes("-translate-y-full");
-    const bar = new DOMMatrix(getComputedStyle(h.querySelector('[aria-hidden="true"]')).transform).m11;
-    return { down, up, bar: Number(bar.toFixed(3)) };
-  });
-  ok("S1 header steps aside on scroll down, returns on scroll up, shows progress", nav.down && nav.up && nav.bar > 0.02 && nav.bar < 1, JSON.stringify(nav));
-
-  await scrollers(page, "S1 /1");
-  ok("/1 loads with no runtime errors", errors.length === 0, errors.join(" | "));
-  await page.close();
-}
-for (const path of ["/1/founder", "/1/projects"]) {
+/* ------------------------- Every page: loads and holds the brand ------------------------- */
+for (const path of PAGES) {
   const { page, errors } = await open(path);
   await walk(page);
-  const u = await unrevealed(page);
-  ok(`S1 ${path} every headline and photograph is revealed after scrolling`, u.words === 0 && u.curtains === 0, JSON.stringify(u));
-  if (path === "/1/projects") await scrollers(page, `S1 ${path}`);
-  ok(`${path} loads with no runtime errors`, errors.length === 0, errors.join(" | "));
-  await page.close();
-}
-{
-  const { page, errors } = await open("/");
-  ok("/ loads with no runtime errors", errors.length === 0, errors.join(" | "));
-  await page.close();
-}
-
-/* ------------------------------ Sample switcher --------------------------- */
-{
-  const { page } = await open("/2/founder");
-  const hrefs = await page.evaluate(() => [...document.querySelectorAll('nav[aria-label="Design samples"] a')].map((a) => a.getAttribute("href")).join(","));
-  ok("Switcher keeps the same page across samples", hrefs === "/,/1/founder,/3/founder", hrefs);
-  await page.close();
-}
-
-/* ---------------------------------- Mobile -------------------------------- */
-for (const path of ["/", "/1", "/1/founder", "/1/projects", "/2", "/2/founder", "/2/projects", "/3", "/3/founder", "/3/projects"]) {
-  const { page, errors } = await open(path, 390, 844);
-  const over = await page.evaluate(async () => {
-    for (let y = 0; y < document.documentElement.scrollHeight; y += 700) {
-      window.scrollTo({ top: y, behavior: "instant" });
-      await new Promise((r) => setTimeout(r, 60));
-    }
-    return document.documentElement.scrollWidth - window.innerWidth;
+  const info = await page.evaluate(() => {
+    const header = document.querySelector("[data-site-header]");
+    const logo = header?.querySelector("svg[aria-label='Sagework']");
+    const footer = document.querySelector("[data-site-footer]");
+    const hidden = [...document.querySelectorAll("main [style*='opacity']")].filter(
+      (e) => getComputedStyle(e).opacity === "0" && e.getBoundingClientRect().height > 40 && !e.closest("[aria-hidden='true']"),
+    ).length;
+    return {
+      overflow: document.documentElement.scrollWidth - window.innerWidth,
+      h1: document.querySelectorAll("h1").length,
+      headerBg: header ? getComputedStyle(header).backgroundColor : "",
+      logoFill: logo?.querySelector("path")?.getAttribute("fill"),
+      logoPaths: logo?.querySelectorAll("path").length,
+      footerBg: footer ? getComputedStyle(footer).backgroundColor : "",
+      bodyFont: getComputedStyle(document.body).fontFamily,
+      h1Style: getComputedStyle(document.querySelector("h1")).fontStyle,
+      hidden,
+      dashes: /[\u2013\u2014]/.test(document.querySelector("main").innerText),
+      broken: [...document.images].filter((i) => i.complete && i.naturalWidth === 0).length,
+    };
   });
-  ok(`mobile ${path} has no sideways overflow`, over <= 0, over);
-  if (path.startsWith("/1")) {
-    await walk(page);
-    const u = await unrevealed(page);
-    ok(`mobile ${path} every headline and photograph is revealed`, u.words === 0 && u.curtains === 0, JSON.stringify(u));
+  ok(`${path} loads with no runtime errors`, errors.length === 0, errors.join(" | "));
+  ok(`${path} has no sideways overflow`, info.overflow <= 0, info.overflow);
+  ok(`${path} has exactly one h1, set in italic`, info.h1 === 1 && info.h1Style === "italic", JSON.stringify([info.h1, info.h1Style]));
+  ok(`${path} header is white with the green logo artwork`, /25[0-5], 25[0-5], 25[0-5]/.test(info.headerBg) && info.logoFill === "#9aca28" && info.logoPaths === 9, JSON.stringify([info.headerBg, info.logoFill, info.logoPaths]));
+  ok(`${path} footer is Sage Green`, info.footerBg === "rgb(154, 202, 40)", info.footerBg);
+  ok(`${path} leaves nothing hidden after scrolling`, info.hidden === 0, info.hidden);
+  ok(`${path} has no em or en dashes in its text`, !info.dashes);
+  ok(`${path} has no broken images`, info.broken === 0, info.broken);
+  await page.close();
+}
+
+/* --------------------------------- Homepage --------------------------------- */
+{
+  const { page } = await open("/");
+  const film = "[data-hero-film]";
+  const first = await page.$eval(film, (e) => e.dataset.slide);
+  await page.click('[data-film-lens="Behaviour"]');
+  await sleep(500);
+  const picked = await page.$eval(film, (e) => e.dataset.slide);
+  ok("Home film: choosing a lens shows its photograph", picked === "2", `${first} -> ${picked}`);
+  await page.mouse.move(5, 5);
+  await sleep(7400);
+  const moved = await page.$eval(film, (e) => e.dataset.slide);
+  ok("Home film: moves on by itself after a click", moved !== "2", moved);
+  const pressed = await page.$$eval("[data-film-lens]", (b) => b.filter((x) => x.getAttribute("aria-pressed") === "true").length);
+  ok("Home film: exactly one lens is marked as showing", pressed === 1, pressed);
+
+  // The five questions of phase 1 label the page, in order.
+  const order = await page.evaluate(() => ["who", "why", "what", "how", "get"].map((id) => Math.round(document.getElementById(id)?.getBoundingClientRect().top ?? -1)));
+  ok("Home: the five phase 1 sections appear in order", order.every((v, i) => v > -1 && (i === 0 || v > order[i - 1])), order.join(","));
+
+  await into(page, "[data-triad]");
+  await sleep(500);
+  await page.click('[data-lens="Environment"] button');
+  await sleep(900);
+  const tri = await page.evaluate(() => {
+    const open = [...document.querySelectorAll("[data-lens]")].filter((l) => l.dataset.open === "true").map((l) => l.dataset.lens);
+    const bg = getComputedStyle(document.querySelector('[data-lens="Environment"]')).backgroundColor;
+    const amber = getComputedStyle(document.querySelector('[data-lens="Behaviour"]')).backgroundColor;
+    const names = [...document.querySelectorAll("[data-lens] .display")].map((n) => n.scrollWidth <= n.clientWidth + 1);
+    return { open, bg, amber, names };
+  });
+  ok("Home triad: one lens open at a time", tri.open.length === 1 && tri.open[0] === "Environment", tri.open.join(","));
+  ok("Home triad: Environment is aqua and Behaviour is amber", tri.bg === "rgb(64, 180, 157)" && tri.amber === "rgb(237, 170, 31)", `${tri.bg} ${tri.amber}`);
+  ok("Home triad: lens names are not cut off", tri.names.every(Boolean), tri.names.join(","));
+
+  await into(page, "[data-senses]");
+  await sleep(400);
+  await page.click("#sense-tab-Sound");
+  await sleep(900);
+  const sound = await page.$eval("[data-sense-figure]", (e) => e.textContent.trim());
+  await page.click("#sense-tab-Taste");
+  await sleep(900);
+  const taste = await page.$eval("[data-sense-figure]", (e) => e.textContent.trim());
+  ok("Home senses: each sense leads with its own figure", sound === "8%" && taste === "11.5%", `${sound} ${taste}`);
+  await page.focus("#sense-tab-Taste");
+  await page.keyboard.press("ArrowRight");
+  await sleep(700);
+  const touch = await page.$eval('[role="tab"][aria-selected="true"]', (e) => e.textContent.trim());
+  ok("Home senses: arrow keys move between tabs", touch === "Touch", touch);
+
+  const notes = await page.$$eval("[data-note]", (n) => n.length);
+  ok("Home: open content requests are marked in place", notes >= 3, notes);
+
+  const svc = await page.$eval("[data-service-link]", (a) => a.getAttribute("href"));
+  ok("Home: services link to their card on the work page", svc === "/work-with-sagework#consulting", svc);
+  await page.close();
+}
+
+/* ------------------------ Hero: the white words can be read ------------------------ */
+// Hides the words, photographs what sits behind them and measures white against it.
+async function behindText(page, sel) {
+  const box = await page.$eval(sel, (e) => {
+    const r = e.getBoundingClientRect();
+    return { x: Math.max(0, r.left), y: Math.max(0, r.top), width: r.width, height: r.height };
+  });
+  await page.addStyleTag({ content: "[data-hero-copy] *{color:transparent!important;text-shadow:none!important;background:transparent!important;border-color:transparent!important}" });
+  await sleep(150);
+  const b64 = await page.screenshot({ clip: box, encoding: "base64" });
+  await page.evaluate(() => document.querySelectorAll("style").forEach((t) => t.textContent.includes("data-hero-copy") && t.remove()));
+  return page.evaluate(async (data) => {
+    const img = new Image();
+    img.src = "data:image/png;base64," + data;
+    await img.decode();
+    const c = document.createElement("canvas");
+    c.width = img.width;
+    c.height = img.height;
+    const g = c.getContext("2d");
+    g.drawImage(img, 0, 0);
+    const px = g.getImageData(0, 0, c.width, c.height).data;
+    const lin = (v) => ((v /= 255) <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4);
+    const L = [];
+    for (let i = 0; i < px.length; i += 16) L.push(0.2126 * lin(px[i]) + 0.7152 * lin(px[i + 1]) + 0.0722 * lin(px[i + 2]));
+    L.sort((x, y) => x - y);
+    const avg = L.reduce((x, y) => x + y, 0) / L.length;
+    return { avg: 1.05 / (avg + 0.05), worst: 1.05 / (L[Math.floor(L.length * 0.95)] + 0.05) };
+  }, b64);
+}
+for (const [w, h] of [[1440, 900], [390, 844]]) {
+  const { page } = await open("/", w, h);
+  for (const lens of ["Biology", "Environment", "Behaviour"]) {
+    await page.click(`[data-film-lens="${lens}"]`);
+    await sleep(2200);
+    const head = await behindText(page, "[data-hero-copy] h1");
+    const para = await behindText(page, "[data-hero-copy] p");
+    // Large text needs 3 to 1 and body text 4.5 to 1; the brightest 5% of the picture must still pass.
+    ok(
+      `Hero ${w}px, ${lens}: headline and paragraph stay readable over the photograph`,
+      head.avg >= 7 && head.worst >= 3 && para.avg >= 7 && para.worst >= 4.5,
+      `headline ${head.avg.toFixed(1)} / ${head.worst.toFixed(1)}, paragraph ${para.avg.toFixed(1)} / ${para.worst.toFixed(1)}`,
+    );
   }
-  ok(`mobile ${path} no runtime errors`, errors.length === 0, errors.join(" | "));
-  if (path === "/3" || path === "/2") {
-    const n = path === "/3" ? "three" : "two";
-    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
-    await page.click(`button[aria-controls="nav-${n}-menu"]`);
-    await sleep(400);
-    const links = await page.evaluate((id) => document.querySelectorAll(`#${id} a`).length, `nav-${n}-menu`);
-    await page.click(`#nav-${n}-menu a`);
-    await sleep(700);
-    const closed = await page.evaluate((id) => !document.getElementById(id) && document.body.style.overflow === "", `nav-${n}-menu`);
-    ok(`mobile ${path} menu opens with 8 links and closes on tap`, links === 8 && closed, `${links} closed:${closed}`);
+  await page.close();
+}
+
+/* ------------------------------ Leaf behaviours ------------------------------ */
+{
+  const { page } = await open("/");
+  await page.mouse.move(400, 300);
+  await sleep(300);
+  await page.mouse.move(520, 380, { steps: 6 });
+  await sleep(700);
+  const cur = await page.evaluate(() => {
+    const c = document.querySelector("[data-leaf-cursor]");
+    if (!c) return null;
+    const r = c.getBoundingClientRect();
+    return { op: getComputedStyle(c).opacity, x: Math.round(r.left), y: Math.round(r.top), pe: getComputedStyle(c).pointerEvents };
+  });
+  ok("Leaf follows the pointer and never blocks clicks", cur && Number(cur.op) > 0.5 && Math.abs(cur.x - 534) < 60 && cur.pe === "none", JSON.stringify(cur));
+  await walk(page);
+  await into(page, "[data-closing]");
+  await sleep(2800);
+  const drawn = await page.$eval("[data-closing] [data-leaf-draw]", (e) => e.dataset.leafDraw);
+  ok("Closing leaf draws itself when it comes into view", drawn === "drawn", drawn);
+  await page.close();
+}
+
+/* ------------------------------ Header and menu ------------------------------ */
+{
+  const { page } = await open("/", 390, 844);
+  const closed = await page.$eval("#site-menu", (m) => m.hidden);
+  await page.click('button[aria-controls="site-menu"]');
+  await sleep(400);
+  const opened = await page.evaluate(() => ({ hidden: document.getElementById("site-menu").hidden, links: document.querySelectorAll("#site-menu a").length }));
+  ok("Phone menu opens with every page listed", closed && !opened.hidden && opened.links === 8, JSON.stringify(opened));
+  await page.keyboard.press("Escape");
+  await sleep(300);
+  ok("Phone menu closes on Escape", await page.$eval("#site-menu", (m) => m.hidden));
+  const fit = await page.evaluate(() => [...document.querySelectorAll("[data-film-lens]")].every((b) => b.scrollWidth <= b.clientWidth + 1));
+  ok("Phone hero: lens buttons fit their labels", fit);
+  await page.close();
+}
+{
+  const { page } = await open("/founder");
+  const cur = await page.$$eval('[data-site-header] nav[aria-label="Main"] a[aria-current="page"]', (a) => a.map((x) => x.textContent.trim()));
+  ok("Header marks the current page", cur.length === 1 && cur[0] === "Founder", cur.join(","));
+  const first = await page.$eval("[data-chapter] details", (d) => d.open);
+  await page.click("[data-chapter] details summary");
+  await sleep(300);
+  ok("Founder chapters open on request", !first && (await page.$eval("[data-chapter] details", (d) => d.open)));
+  ok("Founder has seven chapters", (await page.$$eval("[data-chapter]", (c) => c.length)) === 7);
+  const cv = await page.$$eval("[data-cv] li", (l) => l.length);
+  ok("Founder: experience and education from the CV are listed", cv === 11, cv);
+  const portrait = await page.$eval("main img", (i) => decodeURIComponent(i.currentSrc || i.src));
+  ok("Founder: the page opens on a portrait from the new shoot", /portrait-garden/.test(portrait), portrait.slice(-60));
+  await page.close();
+}
+
+/* --------------------------- Research: papers and forms --------------------------- */
+{
+  const { page } = await open("/research");
+  await into(page, "#human-adaptation-01");
+  await sleep(300);
+  await page.click("#human-adaptation-01 button");
+  await sleep(700);
+  const open1 = await page.$eval("#human-adaptation-01 button", (b) => b.getAttribute("aria-expanded"));
+  await page.click("#human-adaptation-02 button");
+  await sleep(700);
+  const after = await page.evaluate(() => [document.querySelector("#human-adaptation-01 button").getAttribute("aria-expanded"), document.querySelector("#human-adaptation-02 button").getAttribute("aria-expanded")]);
+  ok("Research: papers open one at a time", open1 === "true" && after[0] === "false" && after[1] === "true", `${open1} ${after}`);
+  await page.click("#human-adaptation-02 [data-paper-request]");
+  await sleep(300);
+  await page.click("#human-adaptation-02 [data-paper-form] button[type=submit]");
+  await sleep(300);
+  const err = await page.$eval("#human-adaptation-02 [data-paper-form]", (f) => f.innerText);
+  ok("Research: a paper request asks for name, occupation and email", /complete all three fields/.test(err) && /Occupation/.test(err), err.slice(0, 80));
+  const counts = await page.evaluate(() => ({ ha: document.querySelectorAll("[id^='human-adaptation-0']").length, wise: document.querySelectorAll("[id^='wise-0']").length, pubs: document.querySelectorAll("[id^='publication-']").length / 2 }));
+  ok("Research: 6 and 7 white papers, 5 publications", counts.ha >= 6 && counts.wise >= 7 && counts.pubs === 5, JSON.stringify(counts));
+  await page.close();
+}
+
+/* -------------------------------- Contact form -------------------------------- */
+{
+  const { page } = await open("/contact?type=Board%20Strategy");
+  const pre = await page.$eval("[data-contact-form] select", (s) => s.value);
+  ok("Contact: the enquiry type from a service link is preselected", pre === "Board Strategy", pre);
+  await page.click("[data-contact-form] button[type=submit]");
+  await sleep(300);
+  const first = await page.evaluate(() => ({
+    errors: [...document.querySelectorAll("[data-contact-form] [role=alert]")].map((e) => e.textContent),
+    focus: document.activeElement?.getAttribute("name"),
+  }));
+  ok("Contact: required fields are named when empty", first.errors.length === 3 && first.errors.every((e) => e === "Please complete this field.") && first.focus === "name", JSON.stringify(first));
+  await page.type("[data-contact-form] input[name=name]", "Test Person");
+  await page.type("[data-contact-form] input[name=email]", "not-an-email");
+  await page.type("[data-contact-form] textarea", "A test message.");
+  await page.click("[data-contact-form] button[type=submit]");
+  await sleep(300);
+  const second = await page.evaluate(() => ({
+    errors: [...document.querySelectorAll("[data-contact-form] [role=alert]")].map((e) => e.textContent),
+    kept: document.querySelector("[data-contact-form] textarea").value,
+  }));
+  ok("Contact: an invalid email is caught and typed text is kept", second.errors.length === 1 && /valid email/.test(second.errors[0]) && second.kept === "A test message.", JSON.stringify(second));
+  const opts = await page.$$eval("[data-contact-form] select option", (o) => o.length);
+  ok("Contact: nine enquiry types plus the prompt", opts === 10, opts);
+  await page.close();
+}
+
+/* ----------------------------------- Gallery ----------------------------------- */
+{
+  const { page } = await open("/gallery");
+  const filters = await page.$$eval("[data-gallery] button[aria-pressed]", (b) => b.map((x) => x.textContent.trim()));
+  ok(
+    "Gallery: the five project categories from the Visual Direction, then the teams",
+    filters.join("|") === "Healthcare|Hospitality|Academic institutions|Kitchens|Offices|With teams on site|All",
+    filters.join("|"),
+  );
+  const first = Number(await page.$eval("[data-gallery-count]", (e) => e.textContent));
+  const pressed = await page.$eval('[data-gallery] button[aria-pressed="true"]', (b) => b.textContent.trim());
+  ok("Gallery opens on Healthcare", pressed === "Healthcare" && first >= 10, `${pressed} ${first}`);
+  const counts = {};
+  for (const name of filters) {
+    await page.evaluate((n) => [...document.querySelectorAll("[data-gallery] button[aria-pressed]")].find((b) => b.textContent.trim() === n).click(), name);
+    await sleep(350);
+    counts[name] = Number(await page.$eval("[data-gallery-count]", (e) => e.textContent));
   }
+  ok("Gallery: every category has photographs", Object.values(counts).every((c) => c >= 3), JSON.stringify(counts));
+  ok("Gallery stays small: fewer, stronger images", counts.All <= 60 && counts.All >= 40, counts.All);
+  const srcs = await page.$$eval("[data-gallery-item] img", (i) => i.map((x) => decodeURIComponent(x.currentSrc || x.src)).join(" "));
+  ok(
+    "Gallery leaves out photographs she rejected",
+    !/tree-of-life|playroom|wgsha-atrium|office-dining|msap-aerial-mist|birds-sun|valley-convocation|marena-render|portrait-/.test(srcs),
+  );
+
+  const journeys = await page.evaluate(() =>
+    [...document.querySelectorAll("[data-journey]")].map((j) => [...j.querySelectorAll("[data-stage]")].map((x) => x.dataset.stage).join(" > ")),
+  );
+  ok(
+    "Gallery: project journeys run from site or work in progress to completed",
+    journeys.length === 3 && journeys.every((j) => j.endsWith("Completed")) && journeys.some((j) => j.startsWith("The site > Work in progress")),
+    journeys.join(" | "),
+  );
+
+  await page.evaluate(() => [...document.querySelectorAll("[data-gallery] button[aria-pressed]")].find((b) => b.textContent.trim() === "Healthcare").click());
+  await sleep(400);
+  await into(page, "[data-gallery-item]");
+  await sleep(300);
+  await page.click("[data-gallery-item]");
+  await sleep(500);
+  const v1 = await page.$eval("[data-viewer-index]", (e) => e.textContent);
+  const note = await page.$eval("[data-viewer-note]", (e) => e.textContent.trim());
+  await page.keyboard.press("ArrowRight");
+  await sleep(300);
+  const v2 = await page.$eval("[data-viewer-index]", (e) => e.textContent);
+  ok("Gallery viewer opens and the arrow key moves on", v1 === "1" && v2 === "2", `${v1} ${v2}`);
+  ok("Gallery viewer shows her note for the photograph", /Earthen Symphony/.test(note), note.slice(0, 70));
+  await page.keyboard.press("Escape");
+  await sleep(300);
+  ok("Gallery viewer closes on Escape", (await page.$("[data-gallery-viewer]")) === null);
+  await page.click("[data-gallery-item]");
+  await sleep(400);
+  await page.goto(base + "/", { waitUntil: "networkidle2" });
+  await page.goBack({ waitUntil: "networkidle2" });
+  await sleep(600);
+  ok("Gallery viewer is closed after leaving and coming back", (await page.$("[data-gallery-viewer]")) === null);
+  await page.close();
+}
+
+/* -------------------------- Simply Sage and Dr Gutsy; work -------------------------- */
+{
+  const { page } = await open("/simply-sage");
+  const info = await page.evaluate(() => ({
+    parts: ["simply-sage", "dr-gutsy"].every((id) => document.getElementById(id)),
+    sides: document.querySelectorAll("[data-gutsy-side]").length,
+    slots: document.querySelectorAll("[data-video-slots]").length,
+    gutsyLogo: document.querySelector("#dr-gutsy svg[aria-label='Dr Gutsy'] path")?.getAttribute("fill"),
+  }));
+  ok("Education page has both parts, five characters and two video lists", info.parts && info.sides === 5 && info.slots === 2, JSON.stringify(info));
+  ok("Dr Gutsy logo keeps its own greens", info.gutsyLogo === "#72a00d" || info.gutsyLogo === "#59750b", info.gutsyLogo);
+  await page.close();
+}
+{
+  const { page } = await open("/work-with-sagework");
+  const info = await page.evaluate(() => ({
+    cards: document.querySelectorAll("[data-service]").length,
+    outputs: [...document.querySelectorAll("[data-service]")].every((c) => /Possible outputs/i.test(c.innerText)),
+    link: document.querySelector("[data-service] a")?.getAttribute("href"),
+    steps: document.querySelectorAll("[data-sage-os] li").length,
+  }));
+  ok("Work page: six services, each with its possible outputs", info.cards === 6 && info.outputs, JSON.stringify(info));
+  ok("Work page: a service link carries its enquiry type to the form", info.link === "/contact?type=Consulting#enquiry", info.link);
+  ok("Work page: SAGE OS has four steps", info.steps === 4, info.steps);
+  await page.close();
+}
+{
+  const { page } = await open("/dr-gutsy");
+  ok("/dr-gutsy leads to the Dr Gutsy part of the education page", new URL(page.url()).pathname === "/simply-sage", page.url());
   await page.close();
 }
 
 await browser.close();
 const failed = results.filter((r) => !r.pass);
-for (const r of results) console.log(`${r.pass ? "PASS" : "FAIL"}  ${r.name}${r.pass ? "" : "  -> " + r.detail}`);
+for (const r of results) console.log(`${r.pass ? "PASS" : "FAIL"}  ${r.name}${r.pass ? "" : `   [${r.detail}]`}`);
 console.log(`\n${results.length - failed.length}/${results.length} passed`);
 process.exit(failed.length ? 1 : 0);
