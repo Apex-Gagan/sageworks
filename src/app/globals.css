@@ -1,257 +1,62 @@
 @import "tailwindcss";
 
 /*
- * Sagework design tokens.
- * Each sample is scoped by a class on its layout wrapper:
- *   .theme-one  Sample 1 "Still"   light, editorial, sharp corners
- *   .theme-two  Sample 2 "Canopy"  dark forest, marigold accent, circles and arches
- *   .theme-three Sample 3 "Daylight" white and cream, slate ink, green highlighter (#9ACA28), pill buttons
- * Swap --accent / --fg here once the approved Sagework green is confirmed.
+ * Sagework design tokens. Every value comes from the brand manual or from
+ * Dr Shruti's answers to the questionnaire (17 Nov 2026):
+ *   Sage Green  #9ACA28  leads: buttons, panels, shapes, the leaf      (Q1, Q2, Q3)
+ *   Aqua        #40B49D  accent, and the colour of the Environment lens (Q2 comment)
+ *   Amber       #EDAA1F  accent, and the colour of the Behaviour lens   (Q2 comment)
+ *   #148F5E     links and small green labels on white                   (Q5)
+ *   Dark grey   body text, proposed here for approval                   (Q6)
+ *   White base, with the pale tints #CDEACE and #FFEEB3 and soft gradients (Q7)
+ *   No dark areas; the footer is Sage Green                             (Q8)
+ *   Tints and shades of the brand colours are allowed                   (Q9)
  */
 
 @theme inline {
-  --color-bg: var(--bg);
-  --color-surface: var(--surface);
-  --color-surface-2: var(--surface-2);
-  --color-fg: var(--fg);
-  --color-muted: var(--muted);
-  --color-line: var(--line);
-  --color-accent: var(--accent);
-  --color-on-accent: var(--on-accent);
-  --color-deep: var(--deep);
-  --color-on-deep: var(--on-deep);
-  --color-on-deep-muted: var(--on-deep-muted);
-  --color-tint: var(--tint);
-  --color-accent-soft: var(--accent-soft);
-  --color-accent-ink: var(--accent-ink);
+  --color-sage: #9aca28;
+  --color-sage-deep: #85a834; /* the darker leaf shade printed in the manual */
+  --color-sage-text: #6b9416; /* a shade of Sage Green for large emphasised words on white */
+  --color-sage-ink: #148f5e; /* links and small labels */
+  --color-aqua: #40b49d;
+  --color-aqua-soft: #dcf2ed;
+  --color-amber: #edaa1f;
+  --color-mint: #cdeace;
+  --color-cream: #ffeeb3;
+  --color-paper: #f6faee; /* a very light tint of Sage Green for quiet bands */
+  --color-ink: #333a36; /* proposed body text grey */
+  --color-ink-deep: #1f2823; /* small text on green, aqua and amber */
+  --color-ink-soft: #5d6661;
+  --color-line: #e1e7dc;
+  --color-surface: #eef3e6;
 
-  --font-display: var(--display);
-  --font-body: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-dm-mono), ui-monospace, monospace;
+  --font-display: var(--font-serif), "Iowan Old Style", Georgia, serif;
+  --font-body: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
 
   --ease-soft: cubic-bezier(0.16, 1, 0.3, 1);
-  --radius-media: var(--media-radius);
-  --radius-control: var(--control-radius);
+  --radius-media: 0px;
 
-  --animate-breathe: breathe 28s ease-in-out infinite alternate;
-  --animate-turn: turn 48s linear infinite;
-  --animate-marquee: marquee 46s linear infinite;
-  --animate-bob: bob 7s ease-in-out infinite alternate;
+  --animate-drift: drift 22s ease-in-out infinite alternate;
 
-  @keyframes marquee {
-    to {
-      transform: translate3d(-50%, 0, 0);
-    }
-  }
-  @keyframes bob {
+  @keyframes drift {
     from {
-      transform: translate3d(0, -6px, 0);
+      transform: translate3d(-4%, -2%, 0) scale(1);
     }
     to {
-      transform: translate3d(0, 8px, 0);
-    }
-  }
-  @keyframes turn {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-  @keyframes breathe {
-    from {
-      transform: scale(1.02);
-    }
-    to {
-      transform: scale(1.12);
+      transform: translate3d(5%, 4%, 0) scale(1.12);
     }
   }
 }
 
-:root {
-  --bg: #f3f4ec;
-  --surface: #e8ebde;
-  --surface-2: #dde2d1;
-  --fg: #1b2a20;
-  --muted: #566557;
-  --line: rgb(27 42 32 / 0.16);
-  --accent: #35543a;
-  --on-accent: #f3f4ec;
-  --deep: #17251c;
-  --on-deep: #eceadd;
-  --on-deep-muted: #a9b3a4;
-  --display: var(--font-cormorant), "Iowan Old Style", Georgia, serif;
-  --media-radius: 0px;
-  --control-radius: 0px;
-  --tint: #dde2d1;
-  --accent-soft: #b9cfae;
-  --accent-ink: #35543a;
-}
-
-.theme-one {
-  --bg: #f3f4ec;
-  --surface: #e8ebde;
-  --surface-2: #dde2d1;
-  --fg: #1b2a20;
-  --muted: #566557;
-  --line: rgb(27 42 32 / 0.16);
-  --accent: #35543a;
-  --on-accent: #f3f4ec;
-  --deep: #17251c;
-  --on-deep: #eceadd;
-  --on-deep-muted: #a9b3a4;
-  --display: var(--font-cormorant), "Iowan Old Style", Georgia, serif;
-  --media-radius: 0px;
-  --control-radius: 0px;
-}
-
-.theme-two {
-  --bg: #0c1410;
-  --surface: #131e18;
-  --surface-2: #1a2920;
-  --fg: #ede8da;
-  --muted: #a6ad9e;
-  --line: rgb(237 232 218 / 0.14);
-  --accent: #e9b54d;
-  --on-accent: #17130a;
-  --deep: #070d0a;
-  --on-deep: #ede8da;
-  --on-deep-muted: #a6ad9e;
-  --tint: rgb(233 181 77 / 0.1);
-  --accent-soft: #e9b54d;
-  --accent-ink: #e9b54d;
-  --display: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
-  --media-radius: 24px;
-  --control-radius: 999px;
-}
-
-.theme-three {
-  --bg: #fdfdfb;
-  --surface: #faf9f3;
-  --surface-2: #f2f3f5;
-  --fg: #151b25;
-  --muted: #5a6270;
-  --line: rgb(21 27 37 / 0.13);
-  /* Accent set by the client: #9ACA28. It is a fill behind dark text; the ink
-     version is the same green taken dark enough to read as text on white. */
-  --accent: #9aca28;
-  --on-accent: #17210b;
-  --accent-ink: #4b6a0d;
-  --deep: #1f2a36;
-  --on-deep: #f4f6f7;
-  --on-deep-muted: #aeb8c2;
-  --tint: #eff7dc;
-  --accent-soft: #b6da5f;
-  --display: var(--font-gsf), ui-sans-serif, system-ui, sans-serif;
-  --media-radius: 10px;
-  --control-radius: 999px;
-}
-
-html {
-  scroll-behavior: smooth;
-  -webkit-text-size-adjust: 100%;
-}
-
-body {
-  background: var(--bg);
-  color: var(--fg);
-  font-family: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
-  font-feature-settings: "ss01", "kern";
-  text-rendering: optimizeLegibility;
-}
-
-.theme-one,
-.theme-two,
-.theme-three {
-  background: var(--bg);
-  color: var(--fg);
-  min-height: 100dvh;
-}
-
-::selection {
-  background: var(--accent);
-  color: var(--on-accent);
-}
-
-:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 3px;
-}
-
-/* Paper grain. Fixed and non-interactive so it never repaints with scroll. */
-.grain::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 60;
-  pointer-events: none;
-  opacity: 0.05;
-  mix-blend-mode: multiply;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-.theme-two.grain::after {
-  mix-blend-mode: screen;
-  opacity: 0.045;
-  filter: invert(1);
-}
-
-/* Display type helpers */
-.display {
-  font-family: var(--display);
-  font-optical-sizing: auto;
-}
-.theme-one .display {
-  font-weight: 400;
-  letter-spacing: -0.012em;
-}
-.theme-two .display {
-  font-weight: 350;
-  letter-spacing: -0.035em;
-}
-.theme-two .display strong {
-  font-weight: 560;
-}
-.theme-three {
-  font-family: var(--font-gsf), ui-sans-serif, system-ui, sans-serif;
-}
-.theme-three .display {
-  font-weight: 600;
-  letter-spacing: -0.022em;
-}
-.theme-three.grain::after {
-  display: none;
-}
-
-/* Sample 3 signature: a highlighter block behind the key words. */
-.hl {
-  background: var(--accent);
-  color: var(--on-accent);
-  padding: 0.02em 0.2em 0.06em;
-  -webkit-box-decoration-break: clone;
-  box-decoration-break: clone;
-}
-/* The same highlighter, drawn in from the left when a hero headline arrives.
-   The words start in the surrounding text colour and take the ink colour as
-   the green reaches them, so they stay readable on a photograph. */
-.hl-wipe {
-  background: linear-gradient(var(--accent), var(--accent)) no-repeat left center / 0% 100%;
-  padding: 0.02em 0.2em 0.06em;
-  -webkit-box-decoration-break: clone;
-  box-decoration-break: clone;
-  animation:
-    hl-wipe 0.9s var(--ease-soft) 0.45s forwards,
-    hl-ink 0.4s linear 0.6s forwards;
-}
-@keyframes hl-wipe {
+/* Keyframes used from inline styles stay outside @theme, or the production build drops them. */
+@keyframes kenburns {
+  from {
+    transform: scale(1.02);
+  }
   to {
-    background-size: 100% 100%;
+    transform: scale(1.12);
   }
 }
-@keyframes hl-ink {
-  to {
-    color: var(--on-accent);
-  }
-}
-/* Filling bar on auto-advancing controls. Used from inline styles, so it lives
-   outside @theme: Tailwind drops theme keyframes that no --animate-* names. */
 @keyframes progress {
   from {
     transform: scaleX(0);
@@ -260,52 +65,96 @@ body {
     transform: scaleX(1);
   }
 }
-/* Slow push in on the hero slider's current photograph. */
-@keyframes kenburns {
+@keyframes leaf-draw {
   from {
-    transform: scale(1.02);
+    stroke-dashoffset: 1;
   }
   to {
-    transform: scale(1.13);
+    stroke-dashoffset: 0;
   }
 }
-/* Sample 3 signature card: one generous corner. */
-.cut {
-  border-radius: 12px 12px 72px 12px;
+@keyframes leaf-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
 }
 
-/* Sample 2 signature frame: an arch. */
-.arch {
-  border-radius: 999px 999px 24px 24px;
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 6rem;
 }
 
-/* Small mono label used for citations and figure captions */
-.label {
-  font-family: var(--font-dm-mono), ui-monospace, monospace;
-  font-size: 0.6875rem;
+body {
+  background: #fff;
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--color-sage);
+  color: var(--color-ink-deep);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-sage-ink);
+  outline-offset: 3px;
+}
+
+/* Headlines: the manual's title style, serif regular italic, sentence case. */
+.display {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.012em;
+  line-height: 1.06;
+  text-wrap: balance;
+}
+.display em {
+  font-style: italic;
+  color: var(--color-sage-text);
+}
+
+.eyebrow {
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
+  color: var(--color-sage-ink);
 }
 
-/* Horizontal scrollers */
+/* The card shape from the manual's colour page: square, with one generous corner. */
+.leafcut {
+  border-top-right-radius: clamp(56px, 9vw, 132px);
+  overflow: hidden;
+}
+.leafcut-sm {
+  border-top-right-radius: clamp(28px, 4vw, 56px);
+  overflow: hidden;
+}
+
+/* White with a soft gradient, for depth (Q7 comment). */
+.wash {
+  background:
+    radial-gradient(60% 80% at 100% 0%, rgb(205 234 206 / 0.55), transparent 70%),
+    radial-gradient(50% 70% at 0% 100%, rgb(255 238 179 / 0.4), transparent 70%), #fff;
+}
+.wash-sage {
+  background: linear-gradient(180deg, #fff 0%, var(--color-paper) 55%, #fff 100%);
+}
+
 .no-scrollbar {
   scrollbar-width: none;
 }
 .no-scrollbar::-webkit-scrollbar {
   display: none;
-}
-
-/* Link underline that draws in from the left */
-.link-draw {
-  background-image: linear-gradient(currentColor, currentColor);
-  background-size: 0% 1px;
-  background-position: 0 100%;
-  background-repeat: no-repeat;
-  transition: background-size 0.5s var(--ease-soft);
-}
-.link-draw:hover,
-.link-draw:focus-visible {
-  background-size: 100% 1px;
 }
 
 @media (prefers-reduced-motion: reduce) {

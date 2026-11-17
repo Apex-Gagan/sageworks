@@ -1,5 +1,3 @@
-import type { ImageKey } from "./captions";
-
 /**
  * Founder page copy. Taken from "Sagework | Website Content Master" (Page 2).
  */
@@ -20,7 +18,6 @@ export const founderHero = {
     "Her perspective has been built through more than two decades of leading businesses, scaling operations, conducting scientific research and shaping environments across hospitality, healthcare, education and food systems.",
     "This combination defines Sagework: evidence that can inform decisions, systems that can support people and ideas that can be executed in the real world.",
   ],
-  portrait: "founder/reviewing-designs" as ImageKey,
 };
 
 export type Chapter = {
@@ -33,7 +30,6 @@ export type Chapter = {
   pull?: string;
   pullLead?: string;
   facts?: { value: string; label: string }[];
-  images: ImageKey[];
   link?: { label: string; href: string };
 };
 
@@ -55,11 +51,6 @@ export const chapters: Chapter[] = [
       { value: "110,000", label: "meals a day at Chef on Wheels" },
       { value: "2016", label: "catering business acquired by Quess Corp" },
     ],
-    images: [
-      "hospitality/chef-van-team",
-      "founder/chef-on-wheels-kitchen",
-      "hospitality/chef-van-serving",
-    ],
   },
   {
     id: "scientist",
@@ -78,8 +69,7 @@ export const chapters: Chapter[] = [
       { value: "MSc", label: "Clinical Nutrition" },
       { value: "BSc (Hons)", label: "Biomedical Sciences, Medical Virology" },
     ],
-    images: ["hospitals/tree-of-life-front", "hospitals/physio-get-set-go"],
-    link: { label: "Research & evidence", href: "#research" },
+    link: { label: "Research & evidence", href: "/research" },
   },
   {
     id: "designer",
@@ -93,14 +83,7 @@ export const chapters: Chapter[] = [
     ],
     pullLead: "Design is therefore not only about how a place looks.",
     pull: "It is about what that place enables people to feel, understand and do.",
-    images: [
-      "hospitals/mangalore-shell-lobby",
-      "founder/studio-team",
-      "hospitals/whitefield-angel-corridor",
-      "founder/site-auditorium",
-      "academic/marc-auditorium",
-    ],
-    link: { label: "See the projects", href: "projects" },
+    link: { label: "See the photo gallery", href: "/gallery" },
   },
   {
     id: "writer",
@@ -111,7 +94,6 @@ export const chapters: Chapter[] = [
       "Dr Shruti writes and teaches across the gut microbiome, nutrition, women's health, early-life biology, behaviour and the relationship between people and their environments.",
       "Her work translates complex evidence without stripping it of meaning. It asks better questions, distinguishes evidence from assumption and connects scientific understanding with the decisions people make in everyday life.",
     ],
-    images: ["founder/team-table"],
   },
   {
     id: "dr-gutsy",
@@ -123,8 +105,7 @@ export const chapters: Chapter[] = [
       "It brings together scientific rigour, curiosity and clear communication to make gut microbiome science and human biology easier to understand, question and remember.",
       "Dr Gutsy does not offer another stream of health trends. It examines what the evidence shows, what remains uncertain and why context matters.",
     ],
-    images: [],
-    link: { label: "Explore Dr Gutsy", href: "#gutsy" },
+    link: { label: "Explore Dr Gutsy", href: "/simply-sage#dr-gutsy" },
   },
   {
     id: "global",
@@ -144,7 +125,6 @@ export const chapters: Chapter[] = [
       { value: "Australia", label: "" },
       { value: "United Kingdom", label: "" },
     ],
-    images: ["hospitals/malaysia-mural", "academic/msap-aerial-mist"],
   },
   {
     id: "lived",
@@ -155,7 +135,6 @@ export const chapters: Chapter[] = [
       "Dr Shruti is a mother, entrepreneur, researcher, designer and lifelong learner.",
       "Business taught her to execute. Science taught her to question. Design taught her to observe. Motherhood, reinvention and lived experience taught her that knowledge has value only when it can work within the complexity of real life.",
     ],
-    images: ["founder/site-foundation", "founder/mosaic-wall"],
   },
 ];
 
@@ -186,4 +165,29 @@ export const lenses = {
   final: "Sagework operates where all three meet.",
   tagline: "Built on Biology. Integrated Through Systems. Scaled for Human Potential.",
   cta: "Work With Sagework",
+};
+
+/**
+ * Experience and education, taken from "10_CV_Shruti Kamath Pai_updated.docx"
+ * (supplied 17 November 2026). Roles, organisations and years are as written there.
+ * Phone numbers, nationality and other personal details in the CV are not published.
+ */
+export const career = {
+  experience: [
+    { when: "2025 to present", role: "Founder and Director", place: "Sagework" },
+    { when: "2015 to 2025", role: "Creative Director", place: "Manipal Education and Medical Group" },
+    { when: "2008 to 2017", role: "Entrepreneur, Chef on Wheels", place: "Manipal Integrated Services" },
+    { when: "2005 to 2017", role: "Executive Director", place: "Manipal County Resorts" },
+    { when: "2003 to 2005", role: "Entrepreneur, Monsoon Masala", place: "A boutique restaurant in Sri Hartamas, Kuala Lumpur" },
+  ],
+  education: [
+    { when: "PhD", role: "Clinical Nutrition", place: "St John's Research Institute" },
+    { when: "MSc", role: "Clinical Nutrition", place: "University of Aberdeen" },
+    { when: "2020", role: "Positive psychology certificate", place: "University of Pennsylvania" },
+    { when: "2002", role: "BSc (Hons) Biomedical Sciences, Virology", place: "Murdoch University, Perth" },
+    { when: "2001", role: "BSc Biomedicine", place: "Murdoch University, Perth" },
+    { when: "Certificate", role: "Integrative Nutrition Health Coach", place: "Institute for Integrative Nutrition, New York" },
+  ],
+  confirm:
+    "Three points for Dr Shruti. The CV says the PhD is in progress; the website copy says she holds it. The CV gives 2017 for the Quess acquisition; the website copy gives 2016. The CV names her Shruti Kamath Pai; the website uses Dr Shruti Pai.",
 };

@@ -1,5 +1,3 @@
-import type { ImageKey } from "./captions";
-
 /**
  * Supporting copy from the content master, Pages 3, 4, 6 and 7
  * (Discover Sagework, The Five Senses, Research and Work with Sagework).
@@ -48,76 +46,27 @@ export const applies = {
     {
       name: "Healthcare and care settings",
       body: "Supporting patient experience, staff wellbeing, recovery environments and healthier care systems.",
-      image: "hospitals/whitefield-lobby-rings",
     },
     {
       name: "Schools and universities",
       body: "Designing healthier conditions for attention, learning, movement, nourishment and everyday wellbeing.",
-      image: "academic/msap-courtyard",
     },
     {
       name: "Workplaces and leadership teams",
       body: "Examining how environments, rhythms and organisational practices influence stress, energy, focus and performance.",
-      image: "academic/boardroom-skylight",
     },
     {
       name: "Architecture and the built environment",
       body: "Bringing human biology and sensory experience into decisions about light, air, sound, movement, nature and space.",
-      image: "academic/msap-exterior",
     },
     {
       name: "Food, hospitality and community systems",
       body: "Rethinking the conditions around how people eat, gather, connect and experience care.",
-      image: "hospitality/valley-rangoli-restaurant",
     },
     {
       name: "Health founders and organisations",
       body: "Strengthening evidence, strategy and systems thinking around emerging products, services and models of health.",
-      image: "founder/team-table",
     },
-  ] satisfies { name: string; body: string; image: ImageKey }[],
-};
-
-/** One cited finding per sense, from the Five Senses page. Keyed by sense name. */
-export const senseEvidence: Record<string, { finding: string; source: string }> = {
-  Sight: {
-    finding:
-      "An international expert consensus published in PLOS Biology provides separate recommendations for daytime, evening and night-time light exposure in healthy adults. It supports treating light as a timed biological input.",
-    source: "journals.plos.org",
-  },
-  Sound: {
-    finding:
-      "A WHO-commissioned systematic review found an 8% higher relative risk of developing ischaemic heart disease for each 10 dB increase in long-term road-traffic noise exposure. This population-level association is specific to that exposure and outcome.",
-    source: "pubmed.ncbi.nlm.nih.gov",
-  },
-  Smell: {
-    finding:
-      "Richard Axel and Linda Buck received the 2004 Nobel Prize in Physiology or Medicine for discoveries explaining odour receptors and the organisation of the olfactory system.",
-    source: "nobelprize.org",
-  },
-  Taste: {
-    finding:
-      "In a randomised trial across 19 workplace cafeterias, changing food availability and portion sizes reduced calories purchased from targeted food categories by 11.5%. The study measured purchases, not consumption or weight loss.",
-    source: "journals.plos.org",
-  },
-  Touch: {
-    finding:
-      "The 2021 Nobel Prize recognised David Julius and Ardem Patapoutian's discoveries concerning temperature and touch receptors.",
-    source: "nobelprize.org",
-  },
-};
-
-export const wisePapers = {
-  title: "WISE: Women's Health",
-  line: "An integrated systems perspective across the female life course",
-  papers: [
-    { code: "01", title: "The Perimenopause Gap" },
-    { code: "02", title: "Puberty, Periods & PCOS" },
-    { code: "03", title: "Fertility, Choice & the Reproductive Years" },
-    { code: "04", title: "Mother to Child" },
-    { code: "05", title: "The First 1,000 Days" },
-    { code: "06", title: "Menopause & The Years Beyond" },
-    { code: "07", title: "Designing the Future of Women's Health" },
   ],
 };
 
@@ -140,7 +89,3 @@ export const evidenceNotes = [
   },
 ];
 
-/** Mail link that opens with the matching enquiry type as the subject. */
-export function discussHref(email: string, service: string) {
-  return `mailto:${email}?subject=${encodeURIComponent(`Enquiry: ${service}`)}`;
-}
