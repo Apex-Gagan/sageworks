@@ -49,7 +49,7 @@ async function walk(page) {
   await sleep(1100);
 }
 
-const PAGES = ["/", "/discover", "/founder", "/five-senses", "/simply-sage", "/research", "/work-with-sagework", "/contact", "/gallery"];
+const PAGES = ["/", "/discover", "/projects", "/founder", "/five-senses", "/simply-sage", "/research", "/work-with-sagework", "/contact", "/gallery"];
 
 /* ------------------------- Every page: loads and holds the brand ------------------------- */
 for (const path of PAGES) {
@@ -60,7 +60,8 @@ for (const path of PAGES) {
     const logo = header?.querySelector("svg[aria-label='Sagework']");
     const footer = document.querySelector("[data-site-footer]");
     const hidden = [...document.querySelectorAll("main [style*='opacity']")].filter(
-      (e) => getComputedStyle(e).opacity === "0" && e.getBoundingClientRect().height > 40 && !e.closest("[aria-hidden='true']"),
+      // The hero film is left out: its photographs dissolve into one another all the time.
+      (e) => getComputedStyle(e).opacity === "0" && e.getBoundingClientRect().height > 40 && !e.closest("[aria-hidden='true']") && !e.closest("[data-hero-film]"),
     ).length;
     return {
       overflow: document.documentElement.scrollWidth - window.innerWidth,
@@ -100,6 +101,15 @@ for (const path of PAGES) {
   await sleep(7400);
   const moved = await page.$eval(film, (e) => e.dataset.slide);
   ok("Home film: moves on by itself after a click", moved !== "2", moved);
+  const wide = await page.$eval(film, (e) => Math.round(e.getBoundingClientRect().width) === document.documentElement.clientWidth);
+  ok("Home hero runs the full width of the screen", wide);
+  const who = await page.evaluate(() => {
+    const src = [...document.querySelectorAll("main img")].map((i) => decodeURIComponent(i.currentSrc || i.src));
+    return { people: src.filter((x) => /\/images\/people\//.test(x)).length, founder: src.filter((x) => /\/images\/founder\//.test(x)).length, projects: src.filter((x) => /\/images\/(hospitals|academic|hospitality)\//.test(x)).length };
+  });
+  ok("Home shows her projects, with Dr Shruti in one photograph only", who.people === 0 && who.founder === 1 && who.projects >= 8, JSON.stringify(who));
+  const feat = await page.$$eval("[data-home-project]", (a) => a.map((x) => x.getAttribute("href")));
+  ok("Home: three projects link to their place on the Projects page", feat.length === 3 && feat.every((h) => /^\/projects#[a-z-]+$/.test(h)), feat.join(","));
   const pressed = await page.$$eval("[data-film-lens]", (b) => b.filter((x) => x.getAttribute("aria-pressed") === "true").length);
   ok("Home film: exactly one lens is marked as showing", pressed === 1, pressed);
 
@@ -142,6 +152,60 @@ for (const path of PAGES) {
 
   const svc = await page.$eval("[data-service-link]", (a) => a.getAttribute("href"));
   ok("Home: services link to their card on the work page", svc === "/work-with-sagework#consulting", svc);
+  await page.close();
+}
+
+/* ------------------- Hero film: keeps moving, and after coming back ------------------- */
+{
+  const { page } = await open("/");
+  const film = "[data-hero-film]";
+  const slide = () => page.$eval(film, (e) => e.dataset.slide);
+  // Sample the slide every 250ms and count the changes.
+  const changes = async (ms) => {
+    let last = await slide();
+    let n = 0;
+    for (let t = 0; t < ms; t += 250) {
+      await sleep(250);
+      const now = await slide();
+      if (now !== last) n += 1;
+      last = now;
+    }
+    return n;
+  };
+
+  await page.mouse.move(700, 300); // resting on the photograph itself
+  await sleep(200);
+  const resting = await changes(13500);
+  ok("Hero film changes every 6 seconds, even with the pointer on the photograph", resting === 2, resting);
+
+  const tab = await page.$('[data-film-lens="Environment"]');
+  const box = await tab.boundingBox();
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await sleep(300);
+  const held = await changes(8000);
+  const paused = await page.$eval(film, (e) => e.dataset.paused);
+  ok("Hero film waits while the pointer is on the lens buttons", held === 0 && paused === "true", `${held} ${paused}`);
+
+  // Leave the page with the film paused, then come back by the logo, as a visitor would.
+  await page.keyboard.press("Tab");
+  await page.evaluate(() => document.querySelector('[data-site-header] nav[aria-label="Main"] a[href="/projects"]').click());
+  await page.waitForFunction(() => location.pathname === "/projects", { timeout: 20000 });
+  await sleep(900);
+  await page.mouse.move(120, 40);
+  await page.click('[data-site-header] a[aria-label="Sagework, home"]');
+  await page.waitForFunction(() => location.pathname === "/", { timeout: 20000 });
+  await sleep(600);
+  const back = await changes(13500);
+  ok("Hero film is moving again after leaving and returning by the logo", back >= 2, back);
+
+  // And after the browser's Back button.
+  await page.evaluate(() => document.querySelector('[data-site-header] nav[aria-label="Main"] a[href="/founder"]').click());
+  await page.waitForFunction(() => location.pathname === "/founder", { timeout: 20000 });
+  await sleep(700);
+  await page.goBack({ waitUntil: "networkidle2" });
+  await sleep(600);
+  const again = await changes(13500);
+  ok("Hero film is moving again after the Back button", again >= 2, again);
   await page.close();
 }
 
@@ -220,7 +284,7 @@ for (const [w, h] of [[1440, 900], [390, 844]]) {
   await page.click('button[aria-controls="site-menu"]');
   await sleep(400);
   const opened = await page.evaluate(() => ({ hidden: document.getElementById("site-menu").hidden, links: document.querySelectorAll("#site-menu a").length }));
-  ok("Phone menu opens with every page listed", closed && !opened.hidden && opened.links === 8, JSON.stringify(opened));
+  ok("Phone menu opens with every page listed", closed && !opened.hidden && opened.links === 9, JSON.stringify(opened));
   await page.keyboard.press("Escape");
   await sleep(300);
   ok("Phone menu closes on Escape", await page.$eval("#site-menu", (m) => m.hidden));
@@ -351,6 +415,107 @@ for (const [w, h] of [[1440, 900], [390, 844]]) {
   await page.goBack({ waitUntil: "networkidle2" });
   await sleep(600);
   ok("Gallery viewer is closed after leaving and coming back", (await page.$("[data-gallery-viewer]")) === null);
+  await page.close();
+}
+
+/* ----------------------------------- Projects ----------------------------------- */
+{
+  const { page } = await open("/projects");
+  const info = await page.evaluate(() => ({
+    projects: document.querySelectorAll("[data-project]").length,
+    chips: [...document.querySelectorAll("[data-kind]")].map((b) => b.textContent.replace(/\s+/g, " ").trim()),
+    stats: [...document.querySelectorAll("[data-project-stats] dt")].map((d) => d.textContent.trim()),
+    listed: document.querySelectorAll("[data-project-list] li").length,
+    thin: [...document.querySelectorAll("[data-project]")].filter((p) => p.querySelectorAll("[data-project-photo]").length < 2).length,
+  }));
+  ok("Projects: fourteen projects, each with a lead photograph and more", info.projects === 14 && info.thin === 0, JSON.stringify([info.projects, info.thin]));
+  ok("Projects: five kinds of place, each with its count", info.chips.length === 6 && /^All ?14$/.test(info.chips[0]) && info.chips.every((c) => /\d+$/.test(c)), info.chips.join(" | "));
+  ok("Projects: the headline figure matches the full list", Number(info.stats[0]) === info.listed && info.listed >= 28, `${info.stats[0]} vs ${info.listed}`);
+  const dots = await page.$$eval("[data-kind]", (b) => b.slice(1).map((x) => getComputedStyle(x.querySelector("span")).backgroundColor));
+  ok("Projects: one colour per kind of place", new Set(dots).size === 5, dots.join(" "));
+
+  await page.click('[data-kind="Kitchens"]');
+  await sleep(500);
+  const kitchens = await page.$$eval("[data-project]", (p) => p.map((x) => x.dataset.project));
+  ok("Projects: the filter narrows the list", kitchens.join(",") === "wgsha,chef-on-wheels", kitchens.join(","));
+  await page.click('[data-kind="All"]');
+  await sleep(500);
+
+  await into(page, '[data-project="mangalore"] [data-project-photo]');
+  await sleep(600);
+  await page.click('[data-project="mangalore"] [data-project-photo]');
+  await sleep(500);
+  const v = await page.evaluate(() => ({ idx: document.querySelector("[data-viewer-index]")?.textContent, label: document.querySelector("[data-project-viewer]")?.getAttribute("aria-label") }));
+  await page.keyboard.press("ArrowLeft");
+  await sleep(300);
+  const wrapped = await page.$eval("[data-viewer-index]", (e) => e.textContent);
+  ok("Projects viewer opens on the project and wraps around its own photographs", v.idx === "1" && /Mangalore/.test(v.label) && wrapped === "5", `${v.idx} ${v.label} ${wrapped}`);
+  await page.keyboard.press("Escape");
+  await sleep(300);
+  ok("Projects viewer closes on Escape", (await page.$("[data-project-viewer]")) === null);
+
+  await page.goto(base + "/projects#valley-view", { waitUntil: "networkidle2" });
+  await sleep(3000); // the page scrolls smoothly to the project
+  const top = await page.$eval('[data-project="valley-view"]', (e) => Math.round(e.getBoundingClientRect().top));
+  ok("Projects: a link from the homepage lands on its project, clear of the header", top > 100 && top < 400, top);
+  await page.close();
+}
+
+/* ------------------- Projects: outside stories and films, on request ------------------- */
+{
+  const page = await browser.newPage();
+  await page.setViewport({ width: 1440, height: 900, deviceScaleFactor: 1 });
+  const outside = [];
+  page.on("request", (r) => /instagram\.com|cdninstagram|fbcdn|earthensymphony/.test(r.url()) && outside.push(r.url()));
+  await page.goto(base + "/projects", { waitUntil: "networkidle2", timeout: 120000 });
+  await walk(page);
+
+  const links = await page.$$eval("[data-project-link]", (a) =>
+    a.map((x) => ({ kind: x.dataset.projectLink, href: x.href, blank: x.target === "_blank", rel: x.rel, project: x.closest("[data-project]").dataset.project })),
+  );
+  const stories = links.filter((l) => l.kind === "story");
+  const filmLinks = links.filter((l) => l.kind === "film");
+  ok(
+    "Projects: three stories link to Earthen Symphony and three films to Instagram, each in a new tab",
+    stories.length === 3 && filmLinks.length === 3 && stories.every((l) => /^https:\/\/earthensymphony\.com\/blogs\/articles\//.test(l.href)) && filmLinks.every((l) => /^https:\/\/www\.instagram\.com\/reel\//.test(l.href)) && links.every((l) => l.blank && /noreferrer/.test(l.rel)),
+    JSON.stringify(links.map((l) => `${l.project}:${l.kind}`)),
+  );
+  ok(
+    "Projects: each link sits on the project it belongs to",
+    ["old-airport-road:story", "paediatric:story", "offices:story", "dwarka:film", "quiet-art:film", "bengaluru-campus:film"].every((want) => links.some((l) => `${l.project}:${l.kind}` === want)),
+  );
+  const facts = await page.evaluate(() => ({
+    oar: document.querySelector('[data-project="old-airport-road"]').innerText,
+    paed: document.querySelector('[data-project="paediatric"]').innerText,
+    office: document.querySelector('[data-project="offices"]').innerText,
+  }));
+  ok(
+    "Projects: facts follow the published stories",
+    /Circle of life/.test(facts.oar) && /The Garden Above/.test(facts.paed) && /Paediatrics Department, Manipal Hospital Bengaluru/.test(facts.paed) && /poppies/i.test(facts.office),
+  );
+
+  const before = await page.evaluate(() => ({
+    cards: document.querySelectorAll("[data-reel]").length,
+    frames: document.querySelectorAll("iframe").length,
+    play: document.querySelectorAll("[data-reel-play]").length,
+    out: [...document.querySelectorAll("[data-reel-link]")].map((a) => a.href),
+  }));
+  ok("Films: three cards, and nothing is requested from outside until play is pressed", before.cards === 3 && before.frames === 0 && outside.length === 0, JSON.stringify([before.cards, before.frames, outside.slice(0, 2)]));
+  ok("Films: the reel that cannot be embedded opens on Instagram instead", before.play === 2 && before.out.length === 1 && /reel\/C9wspE4y5mX/.test(before.out[0]), JSON.stringify(before.out));
+  await into(page, "[data-reel-play]");
+  await sleep(400);
+  await page.click("[data-reel-play]");
+  await sleep(600);
+  const after = await page.evaluate(() => {
+    const card = document.querySelector('[data-reel="DMhDizyimaV"]');
+    const f = card.querySelector("iframe");
+    return { src: f?.src, title: f?.title, playing: card.dataset.playing, others: document.querySelectorAll("iframe").length };
+  });
+  ok(
+    "Films: pressing play loads that one reel in place",
+    after.src === "https://www.instagram.com/reel/DMhDizyimaV/embed/" && after.playing === "true" && after.others === 1 && /Instagram/.test(after.title),
+    JSON.stringify(after),
+  );
   await page.close();
 }
 

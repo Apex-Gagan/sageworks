@@ -74,6 +74,29 @@ export const captions = {
   "founder/site-courtyard-team": "Dr Shruti Pai with the project team in a courtyard on site",
   "founder/site-hardhats": "Dr Shruti Pai with the project team on a site visit",
   "founder/mosaic-wall-wide": "A mosaic portrait wall on site",
+
+  "hospitals/dwarka-facade-kites": "Kites, birds and flowers on the facade, Manipal Hospital Dwarka",
+  "hospitals/mangalore-rainbow-panel": "Colour spiral panel in a corridor, Manipal Hospital Mangalore",
+  "hospitals/mangalore-shell-close": "Wave mosaic and nautilus desk, Manipal Hospital Mangalore",
+  "hospitals/mangalore-spiral-turtle": "Detail of the spiral artwork with a sculpted turtle",
+  "hospitals/whitefield-lobby-lights": "Waiting lounge beneath ring lights, Manipal Hospital Whitefield",
+  "hospitals/whitefield-angel-wave": "Angel relief following a gold ribbon",
+  "hospitals/lotus-relief-waiting": "Lotus relief panel above waiting seats",
+  "hospitals/zen-corridor": "Corridor lined with a sand garden mural",
+  "hospitals/butterfly-water": "Butterfly over still water, corridor mural",
+  "hospitals/jaipur-tree-lobby": "Tree and leaf installations at a lobby corner",
+  "hospitals/dental-smile": "Artwork of a smile under repair, dental department",
+  "hospitals/macaws": "Macaws in flight, corridor mural",
+  "academic/library-reading": "Library reading room with booths",
+  "academic/msap-courtyard": "Students gathered in the terraced courtyard",
+  "academic/marc-auditorium-stage": "Auditorium balcony and stalls",
+  "hospitality/wgsha-kitchen-steel": "Students at work in the training kitchen",
+  "hospitality/chef-van-team": "The Chef on Wheels team with the kitchen van",
+  "hospitals/kanakapura-corridor": "Corridor with water lily artwork, Manipal Hospital Kanakapura",
+  "hospitals/kanakapura-lift-lobby": "Lift lobby with lotus artwork, Manipal Hospital Kanakapura",
+
+  "hospitals/paediatric-doors-numbers": "Illustrated door numbers in the paediatric ward",
+  "hospitals/paediatric-doors": "Numbered consultation doors in the paediatric ward",
 } as const;
 
 export type ImageKey = keyof typeof captions;
