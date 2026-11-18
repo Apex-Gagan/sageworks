@@ -115,11 +115,12 @@ export const closing = {
 /**
  * The homepage opening film: one photograph per lens of the SAGE Triad, each with the
  * lens line from the founder page. Stills stand in until the edited video is supplied.
+ * The photographs are of her projects, not of her (client request, 18 November 2026).
  */
 export const film: { lens: "Biology" | "Environment" | "Behaviour"; line: string; image: ImageKey; pos?: string }[] = [
-  { lens: "Biology", line: "What is happening within us.", image: "people/leaf-talk", pos: "50% 30%" },
-  { lens: "Environment", line: "What is happening around us.", image: "people/park-walk", pos: "50% 60%" },
-  { lens: "Behaviour", line: "What people are enabled to do repeatedly.", image: "people/craft-table", pos: "50% 35%" },
+  { lens: "Biology", line: "What is happening within us.", image: "hospitals/mangalore-shell-lobby", pos: "50% 62%" },
+  { lens: "Environment", line: "What is happening around us.", image: "hospitals/whitefield-lobby-lights", pos: "50% 45%" },
+  { lens: "Behaviour", line: "What people are enabled to do repeatedly.", image: "hospitals/lobby-artwork-4512", pos: "50% 40%" },
 ];
 
 /**

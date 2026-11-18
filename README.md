@@ -8,6 +8,7 @@ answers to the build questionnaire. Next.js, TypeScript and Tailwind CSS.
 | Homepage                     | `/`                   |
 | Founder, Dr Shruti Pai       | `/founder`            |
 | Discover Sagework            | `/discover`           |
+| Projects                     | `/projects`           |
 | The Five Senses              | `/five-senses`        |
 | Simply Sage and Dr Gutsy     | `/simply-sage`        |
 | Research and evidence        | `/research`           |
@@ -41,7 +42,7 @@ With the dev server running on port 3000:
 npm run test:ui
 ```
 
-This drives a headless Chrome through every page (122 checks): brand rules on each page
+This drives a headless Chrome through every page (151 checks): brand rules on each page
 (white header, logo artwork, green footer, one italic headline), the hero film and the
 contrast of its white text over each photograph, the
 triad, the five senses, the phone menu, the founder chapters, the white-paper lists and

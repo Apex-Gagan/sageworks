@@ -15,6 +15,8 @@ export type Sense = {
   body: string;
   practice: string;
   image: ImageKey;
+  /** The photograph on the homepage, where projects are shown rather than Dr Shruti. */
+  homeImage: ImageKey;
 };
 
 export const sensesIntro = {
@@ -40,6 +42,7 @@ export const senses: Sense[] = [
     practice:
       "For organisations, the starting point is to assess lighting where people actually work, learn or rest, then address glare and task visibility. The timing dimension is explored further in our circadian science work.",
     image: "hospitals/whitefield-lobby-rings",
+    homeImage: "hospitals/whitefield-lobby-rings",
   },
   {
     name: "Sound",
@@ -53,6 +56,7 @@ export const senses: Sense[] = [
     practice:
       "Within organisations, we examine avoidable noise, speech clarity, privacy and the separation of activities that make competing acoustic demands.",
     image: "people/conversation",
+    homeImage: "hospitality/wgsha-cafe",
   },
   {
     name: "Smell",
@@ -66,6 +70,7 @@ export const senses: Sense[] = [
     practice:
       "In practice, Sagework begins with odour sources, ventilation and the needs of the people exposed. Fragrance choices require particular care in settings where people have sensitivities. A pleasant scent alone does not establish a health benefit.",
     image: "founder/garden-flowers",
+    homeImage: "hospitality/valley-rangoli-restaurant",
   },
   {
     name: "Taste",
@@ -79,6 +84,7 @@ export const senses: Sense[] = [
     practice:
       "This offers a practical example of changing the conditions around choice. Sagework connects sensory appeal with nutrition, food provision and operational feasibility, considering the needs of the population being served.",
     image: "hospitality/wgsha-kitchen-red",
+    homeImage: "hospitality/wgsha-kitchen-red",
   },
   {
     name: "Touch",
@@ -92,6 +98,7 @@ export const senses: Sense[] = [
     practice:
       "For environmental design, we examine usability, physical comfort and opportunities for adjustment. Where interpersonal touch is relevant to care, consent, training and context are essential.",
     image: "people/tree-touch",
+    homeImage: "hospitals/organic-artwork-corridor",
   },
 ];
 

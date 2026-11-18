@@ -7,6 +7,7 @@
 export const routes = {
   home: "/",
   discover: "/discover",
+  projects: "/projects",
   founder: "/founder",
   senses: "/five-senses",
   education: "/simply-sage",
@@ -19,6 +20,7 @@ export const routes = {
 /** Header navigation, in the order Dr Shruti listed the pages (questionnaire, Q24). */
 export const nav = [
   { label: "Discover", href: routes.discover },
+  { label: "Projects", href: routes.projects },
   { label: "Founder", href: routes.founder },
   { label: "Five Senses", href: routes.senses },
   { label: "Simply Sage & Dr Gutsy", href: routes.education },
@@ -28,6 +30,7 @@ export const nav = [
 
 export const footerNav = [
   { label: "Discover Sagework", href: routes.discover },
+  { label: "Projects", href: routes.projects },
   { label: "Founder", href: routes.founder },
   { label: "The Five Senses", href: routes.senses },
   { label: "Simply Sage and Dr Gutsy", href: routes.education },

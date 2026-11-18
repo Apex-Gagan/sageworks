@@ -11,6 +11,7 @@ import { Button, Eyebrow, Lead, Note, Section, TextLink, Title, Wrap } from "@/c
 import { presentNeed, sageOs } from "@/content/discover";
 import { about, film, founderTeaser, hero, outcomes, triad, work } from "@/content/home";
 import { senses, sensesIntro } from "@/content/senses";
+import { projects } from "@/content/projects";
 import { lensColour, phaseOne, routes } from "@/content/site";
 
 /**
@@ -22,23 +23,25 @@ export default function Home() {
   return (
     <>
       {/* Opening: one large picture story of the three lenses */}
-      <section className="pb-6 pt-2 md:pb-10">
+      <section className="pb-6 md:pb-10">
+        <HeroFilm
+          slides={film.map((f) => {
+            const d = imageData(f.image);
+            return { lens: f.lens, line: f.line, dot: lensColour[f.lens].dot, src: d.src, blur: d.blur, alt: d.alt, pos: f.pos };
+          })}
+        >
+          <h1 className="display text-[clamp(2.6rem,6.4vw,6rem)]">
+            Designing human systems for <span className="text-sage">health, resilience and performance</span>
+          </h1>
+          <p className="mt-6 max-w-[40rem] text-[1.08rem] leading-relaxed text-white/95 md:text-[1.25rem]">{hero.sub}</p>
+          <div className="mt-8 flex flex-wrap gap-3 [text-shadow:none]">
+            <Button href={routes.discover}>{hero.cta}</Button>
+            <Button href={routes.projects} tone="ghost">
+              See the projects
+            </Button>
+          </div>
+        </HeroFilm>
         <Wrap>
-          <HeroFilm
-            slides={film.map((f) => {
-              const d = imageData(f.image);
-              return { lens: f.lens, line: f.line, dot: lensColour[f.lens].dot, src: d.src, blur: d.blur, alt: d.alt, pos: f.pos };
-            })}
-          >
-            <h1 className="display text-[clamp(2.5rem,5.6vw,5rem)]">{hero.headline}</h1>
-            <p className="mt-6 max-w-[38rem] text-[1.08rem] leading-relaxed text-white/95 md:text-[1.2rem]">{hero.sub}</p>
-            <div className="mt-8 flex flex-wrap gap-3 [text-shadow:none]">
-              <Button href={routes.discover}>{hero.cta}</Button>
-              <Button href={routes.work} tone="ghost">
-                Work with Sagework
-              </Button>
-            </div>
-          </HeroFilm>
           <Note className="mt-4 max-w-[52rem]" why="Dr Shruti chose a video opening: images describing designing human systems through the three pillars of the SAGE Triad.">
             The edited hero video. Until it arrives, three stills play in its place, one for each pillar.
           </Note>
@@ -60,7 +63,7 @@ export default function Home() {
             </TextLink>
           </Reveal>
           <Reveal delay={0.1}>
-            <Pic k="founder/material-review" ratio="5 / 6" className="leafcut" sizes="(min-width: 1024px) 44vw, 100vw" pos="50% 30%" />
+            <Pic k="hospitals/dwarka-building" ratio="5 / 6" className="leafcut" sizes="(min-width: 1024px) 44vw, 100vw" pos="40% 40%" />
           </Reveal>
         </div>
       </Section>
@@ -131,7 +134,7 @@ export default function Home() {
           </Reveal>
           <Senses
             items={senses.map((s) => {
-              const img = imageData(s.image);
+              const img = imageData(s.homeImage);
               return { ...s, src: img.src, blur: img.blur, alt: img.alt };
             })}
           />
@@ -212,6 +215,37 @@ export default function Home() {
         </Wrap>
       </section>
 
+      {/* Projects: what she has made */}
+      <Section id="projects" tight>
+        <Reveal className="mb-10 flex flex-col justify-between gap-6 md:flex-row md:items-end">
+          <div className="max-w-[44rem]">
+            <Eyebrow>Projects</Eyebrow>
+            <Title size="md" className="mt-4">
+              Environments designed for <em>the people inside them</em>
+            </Title>
+          </div>
+          <TextLink href={routes.projects}>All projects</TextLink>
+        </Reveal>
+        <div className="grid gap-3 md:grid-cols-3">
+          {featured.map((p, n) => (
+            <Reveal key={p.slug} delay={n * 0.08}>
+              <Link href={`${routes.projects}#${p.slug}`} data-home-project className="group block">
+                <Pic
+                  k={p.images[0]}
+                  ratio="4 / 5"
+                  sizes="(min-width: 768px) 32vw, 100vw"
+                  className={n === featured.length - 1 ? "leafcut" : ""}
+                  imgClassName="transition-transform duration-[1200ms] ease-soft group-hover:scale-[1.04]"
+                />
+                <p className="mt-4 text-[12.5px] font-semibold uppercase tracking-[0.14em] text-sage-ink">{p.kind}</p>
+                <p className="display mt-1.5 text-[1.5rem] leading-tight">{p.title}</p>
+                <p className="mt-1 text-[15px] text-ink-soft">{p.theme}</p>
+              </Link>
+            </Reveal>
+          ))}
+        </div>
+      </Section>
+
       {/* The founder */}
       <Section id="founder">
         <div className="grid items-center gap-12 lg:grid-cols-[0.95fr_1.05fr] lg:gap-20">
@@ -239,7 +273,7 @@ export default function Home() {
               Research, evidence and public education
             </Title>
           </div>
-          <TextLink href={routes.gallery}>See the work in the photo gallery</TextLink>
+          <TextLink href={routes.projects}>See the projects</TextLink>
         </Reveal>
         <ExploreCards />
       </Section>
@@ -248,6 +282,9 @@ export default function Home() {
     </>
   );
 }
+
+/** Three projects shown on the homepage, one per kind of place. */
+const featured = ["mangalore", "msap", "valley-view"].map((s) => projects.find((p) => p.slug === s)!);
 
 /** One people-led photograph per lens for the triad panels. */
 const lensImage = {

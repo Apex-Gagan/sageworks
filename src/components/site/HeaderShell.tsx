@@ -61,7 +61,7 @@ export function HeaderShell({
           {logo}
         </Link>
 
-        <nav aria-label="Main" className="hidden items-center gap-7 min-[1180px]:flex">
+        <nav aria-label="Main" className="hidden items-center gap-6 min-[1240px]:flex">
           {items.map((it) => (
             <Link
               key={it.href}
@@ -94,7 +94,7 @@ export function HeaderShell({
             aria-expanded={open}
             aria-controls="site-menu"
             aria-label={open ? "Close menu" : "Open menu"}
-            className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-line text-ink min-[1180px]:hidden"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-line text-ink min-[1240px]:hidden"
           >
             {open ? <X size={20} /> : <List size={20} />}
           </button>
@@ -104,7 +104,7 @@ export function HeaderShell({
       <div
         id="site-menu"
         hidden={!open}
-        className="fixed inset-x-0 bottom-0 top-[76px] z-50 overflow-y-auto bg-white md:top-[88px] min-[1180px]:hidden"
+        className="fixed inset-x-0 bottom-0 top-[76px] z-50 overflow-y-auto bg-white md:top-[88px] min-[1240px]:hidden"
       >
         <nav aria-label="Menu" className="mx-auto flex max-w-[1320px] flex-col px-5 pb-12 pt-4 md:px-10">
           {[...items, ...extra, cta].map((it) => (

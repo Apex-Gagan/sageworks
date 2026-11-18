@@ -13,6 +13,13 @@
  *   Tints and shades of the brand colours are allowed                   (Q9)
  */
 
+/*
+ * The colours of the five kinds of place are named in src/content/projects.ts, not in
+ * a component, and Tailwind did not pick them up from there. Listing them here makes
+ * sure the classes are always generated.
+ */
+@source inline("bg-peach bg-peach-soft bg-periwinkle bg-periwinkle-soft bg-sage bg-mint bg-aqua bg-aqua-soft bg-amber bg-cream");
+
 @theme inline {
   --color-sage: #9aca28;
   --color-sage-deep: #85a834; /* the darker leaf shade printed in the manual */
@@ -23,6 +30,10 @@
   --color-amber: #edaa1f;
   --color-mint: #cdeace;
   --color-cream: #ffeeb3;
+  --color-peach: #f89e55; /* secondary palette: Kitchens on the Projects page */
+  --color-peach-soft: #fde6d2;
+  --color-periwinkle: #6f7dbc; /* secondary palette: Offices on the Projects page */
+  --color-periwinkle-soft: #e3e6f3;
   --color-paper: #f6faee; /* a very light tint of Sage Green for quiet bands */
   --color-ink: #333a36; /* proposed body text grey */
   --color-ink-deep: #1f2823; /* small text on green, aqua and amber */
