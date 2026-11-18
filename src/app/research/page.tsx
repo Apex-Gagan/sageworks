@@ -5,6 +5,7 @@ import { PaperRequest, Subscribe } from "@/components/site/Forms";
 import { Closing, LeafList } from "@/components/site/sections";
 import { Button, Eyebrow, Lead, Note, PageHero, Section, Title } from "@/components/site/ui";
 import { evidenceNotes } from "@/content/discover";
+import { researchLinks } from "@/content/founder";
 import { researchPage as c } from "@/content/pages";
 import { contactEmail, routes } from "@/content/site";
 
@@ -48,9 +49,15 @@ export default function Research() {
           <Reveal delay={0.1}>
             <Lead>{c.academic.body[0]}</Lead>
             <p className="mt-5">{c.academic.body[1]}</p>
-            <Note className="mt-8" why="the content master names both as buttons on this page, without the addresses.">
-              Links to the PhD thesis and to Dr Shruti&apos;s ResearchGate profile. The two buttons appear here once the links are supplied.
-            </Note>
+            <p className="mt-5">Explore her doctoral thesis and related academic publications below.</p>
+            <div data-research-buttons className="mt-8 flex flex-wrap gap-3">
+              <Button href={researchLinks[0].href} external>
+                Read the PhD Thesis
+              </Button>
+              <Button href={researchLinks[1].href} tone="outline" external>
+                View ResearchGate Profile
+              </Button>
+            </div>
           </Reveal>
         </div>
       </Section>

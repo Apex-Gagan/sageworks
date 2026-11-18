@@ -303,6 +303,23 @@ for (const [w, h] of [[1440, 900], [390, 844]]) {
   ok("Founder has seven chapters", (await page.$$eval("[data-chapter]", (c) => c.length)) === 7);
   const cv = await page.$$eval("[data-cv] li", (l) => l.length);
   ok("Founder: experience and education from the CV are listed", cv === 11, cv);
+  const research = await page.evaluate(() => ({
+    links: [...document.querySelectorAll("#scientist [data-research-link]")].map((x) => ({ id: x.dataset.researchLink, href: x.href, blank: x.target === "_blank", rel: x.rel })),
+    cv: [...document.querySelectorAll("[data-cv-link]")].map((x) => ({ href: x.href, row: x.closest("li").innerText.replace(/\s+/g, " ") })),
+  }));
+  ok(
+    "Founder: the Scientist chapter links to the PhD thesis and the ResearchGate profile",
+    research.links.length === 2 &&
+      research.links[0].href === "https://hdl.handle.net/10603/677114" &&
+      research.links[1].href === "https://www.researchgate.net/profile/Shruti-Pai-3" &&
+      research.links.every((l) => l.blank && /noreferrer/.test(l.rel)),
+    JSON.stringify(research.links),
+  );
+  ok(
+    "Founder: the PhD row in the education list links to the thesis",
+    research.cv.length === 1 && research.cv[0].href === "https://hdl.handle.net/10603/677114" && /^PhD /.test(research.cv[0].row),
+    JSON.stringify(research.cv),
+  );
   const portrait = await page.$eval("main img", (i) => decodeURIComponent(i.currentSrc || i.src));
   ok("Founder: the page opens on a portrait from the new shoot", /portrait-garden/.test(portrait), portrait.slice(-60));
   await page.close();
@@ -328,6 +345,17 @@ for (const [w, h] of [[1440, 900], [390, 844]]) {
   ok("Research: a paper request asks for name, occupation and email", /complete all three fields/.test(err) && /Occupation/.test(err), err.slice(0, 80));
   const counts = await page.evaluate(() => ({ ha: document.querySelectorAll("[id^='human-adaptation-0']").length, wise: document.querySelectorAll("[id^='wise-0']").length, pubs: document.querySelectorAll("[id^='publication-']").length / 2 }));
   ok("Research: 6 and 7 white papers, 5 publications", counts.ha >= 6 && counts.wise >= 7 && counts.pubs === 5, JSON.stringify(counts));
+  const buttons = await page.$$eval("[data-research-buttons] a", (a) => a.map((x) => ({ text: x.textContent.trim(), href: x.href, blank: x.target === "_blank", rel: x.rel })));
+  ok(
+    "Research: the thesis and ResearchGate buttons lead to her records, in a new tab",
+    buttons.length === 2 &&
+      buttons[0].text === "Read the PhD Thesis" &&
+      buttons[0].href === "https://hdl.handle.net/10603/677114" &&
+      buttons[1].text === "View ResearchGate Profile" &&
+      buttons[1].href === "https://www.researchgate.net/profile/Shruti-Pai-3" &&
+      buttons.every((b) => b.blank && /noreferrer/.test(b.rel)),
+    JSON.stringify(buttons),
+  );
   await page.close();
 }
 

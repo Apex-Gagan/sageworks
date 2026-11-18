@@ -5,7 +5,8 @@ import { Reveal } from "@/components/shared/Motion";
 import { Closing } from "@/components/site/sections";
 import { Button, Eyebrow, Lead, Note, Section, TextLink, Title, Wrap } from "@/components/site/ui";
 import type { ImageKey } from "@/content/captions";
-import { career, chapters, founderHero, lenses } from "@/content/founder";
+import { ArrowUpRight } from "@phosphor-icons/react/dist/ssr";
+import { career, chapters, founderHero, lenses, researchLinks } from "@/content/founder";
 import { lensColour, routes, tagline, type LensName } from "@/content/site";
 
 export const metadata: Metadata = {
@@ -125,6 +126,27 @@ export default function Founder() {
                     {ch.link.label}
                   </TextLink>
                 ) : null}
+                {ch.id === "scientist" ? (
+                  <ul data-research-links className="mt-6 space-y-2 border-t border-line pt-5">
+                    {researchLinks.map((l) => (
+                      <li key={l.id}>
+                        <a
+                          href={l.href}
+                          target="_blank"
+                          rel="noreferrer"
+                          data-research-link={l.id}
+                          className="group inline-flex items-start gap-2.5 text-[15px] font-semibold text-ink underline-offset-4 hover:text-sage-ink hover:underline"
+                        >
+                          <ArrowUpRight size={18} weight="bold" className="mt-0.5 shrink-0 text-sage-ink" />
+                          <span>
+                            {l.label}
+                            <span className="block text-[13px] font-normal text-ink-soft">{l.by}. Opens in a new tab.</span>
+                          </span>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
               </Reveal>
 
               <Reveal delay={0.1} className={flip ? "lg:order-1" : ""}>
@@ -177,6 +199,18 @@ export default function Founder() {
                     <span>
                       <span className="block text-[16px] font-semibold">{r.role}</span>
                       <span className="block text-[15px] text-ink-soft">{r.place}</span>
+                      {r.link ? (
+                        <a
+                          href={r.link.href}
+                          target="_blank"
+                          rel="noreferrer"
+                          data-cv-link
+                          className="mt-1.5 inline-flex items-center gap-1.5 text-[14px] font-semibold text-sage-ink underline-offset-4 hover:underline"
+                        >
+                          {r.link.label}
+                          <ArrowUpRight size={13} weight="bold" />
+                        </a>
+                      ) : null}
                     </span>
                   </li>
                 ))}

@@ -172,7 +172,19 @@ export const lenses = {
  * (supplied 17 November 2026). Roles, organisations and years are as written there.
  * Phone numbers, nationality and other personal details in the CV are not published.
  */
-export const career = {
+/**
+ * Dr Shruti's doctoral thesis and research profile (links supplied 18 November 2026).
+ * The thesis uses its permanent handle, which the repository asks people to cite.
+ * The ResearchGate address is given without its tracking tag.
+ */
+export const researchLinks = [
+  { id: "thesis", label: "Read the PhD thesis", by: "Shodhganga", href: "https://hdl.handle.net/10603/677114" },
+  { id: "researchgate", label: "View ResearchGate profile", by: "ResearchGate", href: "https://www.researchgate.net/profile/Shruti-Pai-3" },
+] as const;
+
+export type CvRow = { when: string; role: string; place: string; link?: { label: string; href: string } };
+
+export const career: { experience: CvRow[]; education: CvRow[]; confirm: string } = {
   experience: [
     { when: "2025 to present", role: "Founder and Director", place: "Sagework" },
     { when: "2015 to 2025", role: "Creative Director", place: "Manipal Education and Medical Group" },
@@ -181,7 +193,7 @@ export const career = {
     { when: "2003 to 2005", role: "Entrepreneur, Monsoon Masala", place: "A boutique restaurant in Sri Hartamas, Kuala Lumpur" },
   ],
   education: [
-    { when: "PhD", role: "Clinical Nutrition", place: "St John's Research Institute" },
+    { when: "PhD", role: "Clinical Nutrition", place: "St John's Research Institute", link: { label: "Read the thesis", href: "https://hdl.handle.net/10603/677114" } },
     { when: "MSc", role: "Clinical Nutrition", place: "University of Aberdeen" },
     { when: "2020", role: "Positive psychology certificate", place: "University of Pennsylvania" },
     { when: "2002", role: "BSc (Hons) Biomedical Sciences, Virology", place: "Murdoch University, Perth" },
