@@ -579,6 +579,400 @@ for (const [w, h] of [[1440, 900], [390, 844]]) {
   await page.close();
 }
 
+/* ================================== Design 2 ================================== */
+/* Design 2 lives under /2: same colours, typefaces, logo and wording, another layout,
+   and a set of photographs of its own. */
+const PAGES2 = PAGES.map((p) => (p === "/" ? "/2" : `/2${p}`));
+
+for (const path of PAGES2) {
+  const { page, errors } = await open(path);
+  await walk(page);
+  const info = await page.evaluate(() => {
+    const header = document.querySelector("[data-site-header]");
+    const logo = header?.querySelector("svg[aria-label='Sagework']");
+    const footer = document.querySelector("[data-site-footer]");
+    const hidden = [...document.querySelectorAll("main [style*='opacity']")].filter(
+      (e) => getComputedStyle(e).opacity === "0" && e.getBoundingClientRect().height > 40 && !e.closest("[aria-hidden='true']") && !e.closest("[hidden]"),
+    ).length;
+    const photos = [...document.querySelectorAll("img")].map((i) => decodeURIComponent(i.currentSrc || i.src));
+    const links = [...document.querySelectorAll("header a[href^='/'], main a[href^='/'], footer a[href^='/']")].map((a) => a.getAttribute("href"));
+    return {
+      overflow: document.documentElement.scrollWidth - window.innerWidth,
+      h1: document.querySelectorAll("h1").length,
+      headerBg: header ? getComputedStyle(header).backgroundColor : "",
+      logoFill: logo?.querySelector("path")?.getAttribute("fill"),
+      logoPaths: logo?.querySelectorAll("path").length,
+      footerBg: footer ? getComputedStyle(footer).backgroundColor : "",
+      h1Style: getComputedStyle(document.querySelector("h1")).fontStyle,
+      h1Font: getComputedStyle(document.querySelector("h1")).fontFamily,
+      hidden,
+      dashes: /[–—]/.test(document.querySelector("main").innerText),
+      broken: [...document.images].filter((i) => i.complete && i.naturalWidth === 0).length,
+      foreign: photos.filter((s) => /\/images\//.test(s) && !/\/images\/two\//.test(s)),
+      outside: links.filter((h) => h !== "/2" && !h.startsWith("/2/") && !h.startsWith("/2?") && !h.startsWith("/2#")),
+      leafcut: document.querySelectorAll("main .leafcut, main .leafcut-sm").length,
+    };
+  });
+  ok(`${path} loads with no runtime errors`, errors.length === 0, errors.join(" | "));
+  ok(`${path} has no sideways overflow`, info.overflow <= 0, info.overflow);
+  ok(`${path} has exactly one h1, set in the italic serif`, info.h1 === 1 && info.h1Style === "italic" && /serif/i.test(info.h1Font), JSON.stringify([info.h1, info.h1Style]));
+  ok(`${path} header is white with the green logo artwork`, /25[0-5], 25[0-5], 25[0-5]/.test(info.headerBg) && info.logoFill === "#9aca28" && info.logoPaths === 9, JSON.stringify([info.headerBg, info.logoFill, info.logoPaths]));
+  ok(`${path} footer is white`, /25[0-5], 25[0-5], 25[0-5]/.test(info.footerBg), info.footerBg);
+  ok(`${path} leaves nothing hidden after scrolling`, info.hidden === 0, info.hidden);
+  ok(`${path} has no em or en dashes in its text`, !info.dashes);
+  ok(`${path} has no broken images`, info.broken === 0, info.broken);
+  ok(`${path} shows no photograph that Design 1 uses`, info.foreign.length === 0, info.foreign.join(", "));
+  ok(`${path} keeps every link inside Design 2`, info.outside.length === 0, info.outside.join(", "));
+  ok(`${path} does not borrow Design 1's card shape`, info.leafcut === 0, info.leafcut);
+  await page.close();
+}
+
+/* Design 1 must not show a Design 2 photograph either. */
+for (const path of PAGES) {
+  const { page } = await open(path);
+  await walk(page);
+  const two = await page.evaluate(() => [...document.querySelectorAll("img")].map((i) => decodeURIComponent(i.currentSrc || i.src)).filter((s) => /\/images\/two\//.test(s)));
+  ok(`${path} (Design 1) shows no Design 2 photograph`, two.length === 0, two.join(", "));
+  await page.close();
+}
+
+/* ------------------------------ The design switch ------------------------------ */
+{
+  const { page } = await open("/founder");
+  const hrefs = await page.$$eval("[data-design-switch] a", (a) => a.map((x) => [x.textContent.trim(), x.getAttribute("href"), x.getAttribute("aria-current")]));
+  ok("Switch on a Design 1 page leads to the same page in Design 2", hrefs.length === 2 && hrefs[0][2] === "true" && hrefs[1][1] === "/2/founder", JSON.stringify(hrefs));
+  await page.click('[data-design-switch] a[data-design="Design 2"]');
+  await page.waitForFunction(() => location.pathname === "/2/founder", { timeout: 60000 });
+  await sleep(600);
+  const back = await page.$$eval("[data-design-switch] a", (a) => a.map((x) => [x.getAttribute("href"), x.getAttribute("aria-current")]));
+  ok("Switch on a Design 2 page leads back to Design 1", back[0][0] === "/founder" && back[1][1] === "true", JSON.stringify(back));
+  await page.close();
+}
+
+/* --------------------------------- Design 2 home --------------------------------- */
+{
+  const { page } = await open("/2");
+  const tri = "[data-triptych]";
+  const panels = await page.$$eval("[data-panel]", (b) => b.map((x) => x.dataset.panel));
+  ok("Home 2: the opening shows the three lenses", panels.join() === "Biology,Environment,Behaviour", panels.join());
+  const wide = await page.$eval(tri, (e) => e.getBoundingClientRect().width >= document.documentElement.clientWidth - 24);
+  ok("Home 2: the opening runs the full width of the screen", wide);
+  await page.click('[data-panel="Behaviour"]');
+  await sleep(400);
+  ok("Home 2: choosing a lens makes it lead", (await page.$eval(tri, (e) => e.dataset.active)) === "2");
+  const lead = await page.$$eval("[data-panel]", (b) => b.map((x) => Math.round(x.getBoundingClientRect().width)));
+  await sleep(1300);
+  const leadAfter = await page.$$eval("[data-panel]", (b) => b.map((x) => Math.round(x.getBoundingClientRect().width)));
+  ok("Home 2: the leading lens is the widest", leadAfter[2] > leadAfter[0] * 1.8 && leadAfter[2] > leadAfter[1] * 1.8, `${lead} -> ${leadAfter}`);
+  await page.mouse.move(700, 150);
+  await sleep(7000);
+  ok("Home 2: the opening moves on by itself, six seconds a lens", (await page.$eval(tri, (e) => e.dataset.active)) !== "2");
+  ok("Home 2: exactly one lens is marked as leading", (await page.$$eval("[data-panel][aria-pressed='true']", (b) => b.length)) === 1);
+
+  // Leave with the opening held under the pointer, come back by the logo: it must be moving.
+  await page.hover('[data-panel="Environment"]');
+  await sleep(300);
+  ok("Home 2: pointing at a lens holds it", (await page.$eval(tri, (e) => e.dataset.held)) === "true");
+  await page.click("header nav[aria-label='Main'] a[href='/2/research']");
+  await page.waitForFunction(() => location.pathname === "/2/research", { timeout: 60000 });
+  await sleep(500);
+  await page.click("header a[aria-label='Sagework, home']");
+  await page.waitForFunction(() => location.pathname === "/2", { timeout: 60000 });
+  await page.mouse.move(700, 150);
+  await sleep(600);
+  const a = await page.$eval(tri, (e) => e.dataset.active);
+  await sleep(7200);
+  const b = await page.$eval(tri, (e) => e.dataset.active);
+  ok("Home 2: the opening is moving again after returning by the logo", a !== b, `${a} -> ${b}`);
+
+  // The five questions of phase 1, in order, each answered by one part of the page.
+  const qs = await page.$$eval("[data-question]", (s) => s.map((x) => [x.id, x.querySelector("[data-bar] .eyebrow")?.textContent.trim()]));
+  ok(
+    "Home 2: answers the five phase 1 questions in order",
+    qs.map((q) => q[0]).join() === "who,why,what,how,get" &&
+      qs.map((q) => q[1]).join("|") === "Who are we?|Why are we here?|What do we bring to you?|How will we help you?|What will you get by working with us?",
+    JSON.stringify(qs),
+  );
+  const rail = await page.$$eval("[data-rail] a", (l) => l.map((x) => x.getAttribute("href")));
+  ok("Home 2: the five questions stay beside the page as a list", rail.join() === "#who,#why,#what,#how,#get", rail.join());
+  await page.evaluate(() => document.getElementById("what").scrollIntoView({ block: "start", behavior: "instant" }));
+  await sleep(900);
+  const cur = await page.$$eval("[data-rail] a[aria-current='true']", (l) => l.map((x) => x.getAttribute("href")));
+  ok("Home 2: the list marks the question being answered", cur.join() === "#what", cur.join());
+  const sticky = await page.$eval("[data-rail]", (e) => e.getBoundingClientRect().top);
+  ok("Home 2: the list stays in view while scrolling", sticky > 100 && sticky < 260, sticky);
+
+  // The triad as three circles
+  await into(page, "[data-venn]");
+  await page.click('[data-venn-tab="Environment"]');
+  await sleep(300);
+  const venn = await page.evaluate(() => ({
+    open: [...document.querySelectorAll("[data-venn-tab][aria-expanded='true']")].map((x) => x.dataset.vennTab),
+    text: document.getElementById("lens-panel-Environment")?.innerText ?? "",
+    circles: document.querySelectorAll("[data-venn] svg circle").length,
+    strong: [...document.querySelectorAll("[data-venn] svg circle")].slice(0, 3).map((c) => c.getAttribute("fill-opacity")),
+  }));
+  ok("Home 2: the triad is three circles, one lens open at a time", venn.open.join() === "Environment" && /light, air, sound/i.test(venn.text) && venn.circles === 4, JSON.stringify(venn).slice(0, 170));
+  ok("Home 2: the chosen lens is the strongest circle", Number(venn.strong[1]) > Number(venn.strong[0]) && Number(venn.strong[1]) > Number(venn.strong[2]), venn.strong.join());
+
+  // The five senses as a table of numbers
+  await into(page, "[data-sense-grid]");
+  const figures = await page.$$eval("[data-sense]", (b) => b.map((x) => x.innerText.replace(/\s+/g, " ")));
+  ok("Home 2: five senses, four led by a number", figures.length === 5 && ["8%", "2004", "11.5%", "137"].every((f) => figures.some((t) => t.includes(f))), figures.join(" / ").slice(0, 170));
+  await page.click('[data-sense="Taste"]');
+  await sleep(300);
+  const sense = await page.$eval("[data-sense-panel]", (e) => [e.dataset.sensePanel, /19 workplace cafeterias/.test(e.innerText), /Source:/.test(e.innerText)]);
+  ok("Home 2: choosing a sense shows its finding and source", sense[0] === "Taste" && sense[1] && sense[2], JSON.stringify(sense));
+
+  // Services as rows
+  await into(page, "#how [data-rows]");
+  const rows = await page.$$eval("#how [data-row]", (r) => r.map((x) => x.dataset.open));
+  ok("Home 2: six services, the first open", rows.length === 6 && rows[0] === "true" && rows.slice(1).every((v) => v === "false"), rows.join());
+  await page.click("#how [data-row]:nth-child(3) button");
+  await sleep(300);
+  const rows2 = await page.$$eval("#how [data-row]", (r) => r.map((x) => x.dataset.open));
+  const svc = await page.$eval("#how [data-row][data-open='true']", (e) => [/Possible outputs/i.test(e.innerText), e.querySelector("[data-service-link]")?.getAttribute("href")]);
+  ok("Home 2: opening a service closes the other", rows2.filter((v) => v === "true").length === 1 && rows2[2] === "true", rows2.join());
+  ok("Home 2: an open service shows its outputs and links to the Work page", svc[0] && svc[1] === "/2/work-with-sagework#evaluation-and-audit", JSON.stringify(svc));
+
+  const loop = await page.$$eval("#how [data-sage-loop] li", (l) => l.map((x) => x.querySelector("span")?.textContent.trim()).join(""));
+  ok("Home 2: SAGE OS is a loop of four steps whose initials spell SAGE", loop === "SAGE", loop);
+  const outs = await page.$$eval("#get li", (l) => l.length);
+  ok("Home 2: eight possible outputs answer the last question", outs === 8, outs);
+  const gap = await page.$eval("[data-gap-diagram]", (e) => e.innerText.replace(/\s+/g, " "));
+  ok("Home 2: the Human Adaptation Gap is drawn and labelled", /modern systems demand/.test(gap) && /human biology needs/.test(gap) && /Human Adaptation Gap/.test(gap), gap);
+
+  const feat = await page.$$eval("[data-home-project]", (l) => l.map((x) => x.getAttribute("href")));
+  ok("Home 2: six projects link to their place on the Projects page", feat.length === 6 && feat.every((h) => /^\/2\/projects#[a-z-]+$/.test(h)), feat.join(","));
+  await into(page, "#projects [data-slider]");
+  const before = await page.$eval("#projects [data-slider] [role='group']", (e) => e.scrollLeft);
+  await page.click("#projects [data-slider-next]");
+  await sleep(900);
+  const after = await page.$eval("#projects [data-slider] [role='group']", (e) => e.scrollLeft);
+  ok("Home 2: the projects strip moves with its arrow", after > before + 200, `${before} -> ${after}`);
+  const who = await page.evaluate(() => [...document.querySelectorAll("main img")].map((i) => decodeURIComponent(i.currentSrc || i.src)).filter((s) => /\/two\/(founder|team)-/.test(s)).length);
+  ok("Home 2: Dr Shruti appears in one photograph only", who === 1, who);
+  const notes = await page.$$eval("main [data-note]", (n) => n.length);
+  ok("Home 2: missing content is marked where it belongs", notes >= 2, notes);
+  await page.close();
+}
+
+/* -------------------------------- Design 2 projects -------------------------------- */
+{
+  const { page } = await open("/2/projects");
+  const stats = await page.$$eval("[data-project-stats] dt", (d) => d.map((x) => x.textContent.trim()).join());
+  ok("Projects 2: the three figures are counted from the lists", stats === "30,5,13", stats);
+  await into(page, "[data-project-index]");
+  const first = await page.evaluate(() => ({
+    items: document.querySelectorAll("[data-project-item]").length,
+    kinds: document.querySelectorAll("[data-project-index] [data-kind]").length,
+    open: document.querySelector("[data-project-detail]").dataset.projectDetail,
+    img: !!document.querySelector("[data-project-detail] img"),
+  }));
+  ok("Projects 2: fourteen projects in five kinds of place, opening on one with photographs", first.items === 14 && first.kinds === 5 && first.open === "mangalore" && first.img, JSON.stringify(first));
+  await page.click('[data-project-item="marc"]');
+  await sleep(500);
+  const marc = await page.evaluate(() => ({
+    open: document.querySelector("[data-project-detail]").dataset.projectDetail,
+    title: document.querySelector("[data-project-detail] h3").textContent,
+    thumbs: document.querySelectorAll("[data-project-thumb]").length,
+    pressed: document.querySelectorAll("[data-project-item][aria-pressed='true']").length,
+    lead: document.querySelector("[data-project-detail] img").getAttribute("alt"),
+  }));
+  ok("Projects 2: choosing a project shows it", marc.open === "marc" && /MARC/.test(marc.title) && marc.thumbs === 4 && marc.pressed === 1, JSON.stringify(marc));
+  await page.click("[data-project-thumb]:nth-of-type(1)");
+  await page.$$eval("[data-project-thumb]", (t) => t[2].click());
+  await sleep(500);
+  const lead2 = await page.$eval("[data-project-detail] img", (i) => i.getAttribute("alt"));
+  ok("Projects 2: a small photograph becomes the large one", lead2 !== marc.lead, `${marc.lead} -> ${lead2}`);
+  await page.click('[data-project-item="chef-on-wheels"]');
+  await sleep(400);
+  const words = await page.evaluate(() => ({ note: !!document.querySelector("[data-project-detail] [data-note]"), img: document.querySelectorAll("[data-project-detail] img").length, text: document.querySelector("[data-project-detail]").innerText }));
+  ok("Projects 2: a project with no separate photograph is told in words, and says so", words.note && words.img === 0 && /110,000 meals/.test(words.text), JSON.stringify(words).slice(0, 160));
+  await page.click('[data-project-item="old-airport-road"]');
+  await sleep(400);
+  const link = await page.$eval("[data-project-detail] [data-project-link]", (a) => [a.href, a.target, a.rel]);
+  ok("Projects 2: a story link opens the collaborator's page in a new tab", /earthensymphony\.com/.test(link[0]) && link[1] === "_blank" && /noreferrer/.test(link[2]), link.join(" "));
+
+  await into(page, "[data-film-rows]");
+  const films = await page.evaluate(() => ({ rows: document.querySelectorAll("[data-film-row]").length, frames: document.querySelectorAll("[data-film-rows] iframe").length, plays: document.querySelectorAll("[data-film-play]").length, out: document.querySelector("[data-film-link]")?.href }));
+  ok("Projects 2: three films, and nothing loaded from Instagram until asked", films.rows === 3 && films.frames === 0 && films.plays === 2 && /instagram\.com\/reel\/C9wspE4y5mX/.test(films.out), JSON.stringify(films));
+  await page.click("[data-film-play]");
+  await sleep(500);
+  const frame = await page.$$eval("[data-film-rows] iframe", (f) => f.map((x) => x.src));
+  ok("Projects 2: pressing play opens that film in place", frame.length === 1 && /instagram\.com\/reel\/DMhDizyimaV\/embed/.test(frame[0]), frame.join());
+  const lists = await page.$$eval("[data-project-list] li", (l) => l.length);
+  ok("Projects 2: the full list names thirty projects", lists === 30, lists);
+  await page.close();
+
+  const deep = await open("/2/projects#valley-view");
+  await sleep(500);
+  const opened = await deep.page.$eval("[data-project-detail]", (e) => e.dataset.projectDetail);
+  ok("Projects 2: a link to one project opens that project", opened === "valley-view", opened);
+  await deep.page.close();
+}
+
+/* -------------------------------- Design 2 founder -------------------------------- */
+{
+  const { page } = await open("/2/founder");
+  await into(page, "[data-chapters]");
+  const tabs = await page.evaluate(() => ({
+    tabs: document.querySelectorAll("[data-chapter-tab]").length,
+    shown: [...document.querySelectorAll("[data-chapter-panel]")].filter((p) => !p.hidden).map((p) => p.dataset.chapterPanel),
+  }));
+  ok("Founder 2: seven chapters as tabs, one open", tabs.tabs === 7 && tabs.shown.join() === "business-leader", JSON.stringify(tabs));
+  await page.click('[data-chapter-tab="scientist"]');
+  await sleep(300);
+  const sci = await page.evaluate(() => {
+    const p = [...document.querySelectorAll("[data-chapter-panel]")].filter((x) => !x.hidden);
+    return {
+      shown: p.map((x) => x.dataset.chapterPanel),
+      links: [...p[0].querySelectorAll("[data-research-link]")].map((a) => a.href),
+      selected: document.querySelectorAll("[data-chapter-tab][aria-selected='true']").length,
+      maxim: p[0].querySelector("h2").textContent,
+    };
+  });
+  ok("Founder 2: choosing a chapter shows it alone", sci.shown.join() === "scientist" && sci.selected === 1 && /Evidence before assumption/.test(sci.maxim), JSON.stringify(sci).slice(0, 170));
+  ok("Founder 2: the scientist chapter links to the thesis and ResearchGate", sci.links.join() === "https://hdl.handle.net/10603/677114,https://www.researchgate.net/profile/Shruti-Pai-3", sci.links.join());
+  await page.focus('[data-chapter-tab="scientist"]');
+  await page.keyboard.press("ArrowDown");
+  await sleep(300);
+  const next = await page.evaluate(() => [...document.querySelectorAll("[data-chapter-panel]")].filter((x) => !x.hidden).map((x) => x.dataset.chapterPanel).join());
+  ok("Founder 2: the arrow keys move between chapters", next === "designer", next);
+  const cv = await page.evaluate(() => ({ lists: document.querySelectorAll("[data-cv]").length, rows: document.querySelectorAll("[data-cv] li").length, thesis: document.querySelector("[data-cv-link]")?.href }));
+  ok("Founder 2: experience and education as two timelines, with the thesis link", cv.lists === 2 && cv.rows === 11 && cv.thesis === "https://hdl.handle.net/10603/677114", JSON.stringify(cv));
+  await page.close();
+
+  const deep = await open("/2/founder#dr-gutsy");
+  const opened = await deep.page.evaluate(() => [...document.querySelectorAll("[data-chapter-panel]")].filter((x) => !x.hidden).map((x) => x.dataset.chapterPanel).join());
+  ok("Founder 2: a link to one chapter opens that chapter", opened === "dr-gutsy", opened);
+  await deep.page.close();
+}
+
+/* --------------------------- Design 2 senses, research, work --------------------------- */
+{
+  const { page } = await open("/2/five-senses");
+  await into(page, "[data-sense-grid]");
+  await page.click('[data-sense="Touch"]');
+  await sleep(300);
+  const t = await page.$eval("[data-sense-panel]", (e) => [e.dataset.sensePanel, /137 studies/.test(e.innerText), /In practice/i.test(e.innerText)]);
+  ok("Senses 2: a sense shows its finding, explanation and practice", t[0] === "Touch" && t[1] && t[2], JSON.stringify(t));
+  const loop = await page.$$eval("[data-sage-loop] li", (l) => l.length);
+  ok("Senses 2: SAGE OS has four steps, and the white paper is introduced", loop === 4 && !!(await page.$("[data-paper-card]")), loop);
+  await page.close();
+}
+{
+  const { page } = await open("/2/research");
+  const info = await page.evaluate(() => ({
+    index: document.querySelectorAll("[data-page-index] a").length,
+    pubs: document.querySelectorAll("[id^='publication-']").length,
+    pre: document.querySelectorAll("[id^='preprint-']").length,
+    series: [...document.querySelectorAll("[data-series]")].map((s) => s.querySelectorAll("[data-row]").length),
+    buttons: [...document.querySelectorAll("[data-research-buttons] a")].map((a) => [a.textContent.trim(), a.href, a.target]),
+    open: document.querySelectorAll("[data-row][data-open='true']").length,
+  }));
+  ok("Research 2: five publications, three preprints, six and seven white papers", info.pubs === 5 && info.pre === 3 && info.series.join() === "6,7" && info.index === 5, JSON.stringify(info).slice(0, 170));
+  ok(
+    "Research 2: the thesis and ResearchGate buttons lead to her records, in a new tab",
+    info.buttons.length === 2 && info.buttons[0][1] === "https://hdl.handle.net/10603/677114" && info.buttons[1][1] === "https://www.researchgate.net/profile/Shruti-Pai-3" && info.buttons.every((b) => b[2] === "_blank"),
+    JSON.stringify(info.buttons),
+  );
+  await into(page, "#human-adaptation-02");
+  await page.click("#human-adaptation-02 button");
+  await sleep(300);
+  const paper = await page.$eval("#human-adaptation-02", (e) => [e.dataset.open, /environment repeatedly communicating/.test(e.innerText), !!e.querySelector("button, form")]);
+  ok("Research 2: a white paper opens with its question and a way to request it", info.open === 0 && paper[0] === "true" && paper[1] && paper[2], JSON.stringify(paper));
+  await page.close();
+}
+{
+  const { page } = await open("/2/work-with-sagework");
+  const info = await page.evaluate(() => ({
+    rows: document.querySelectorAll("[data-service]").length,
+    outputs: [...document.querySelectorAll("[data-service]")].every((c) => /Possible outputs/i.test(c.innerText)),
+    link: document.querySelector("[data-service] a")?.getAttribute("href"),
+    steps: document.querySelectorAll("[data-sage-loop] li").length,
+    audience: document.querySelectorAll("[data-audience] li").length,
+  }));
+  ok("Work 2: six services, each with its possible outputs", info.rows === 6 && info.outputs && info.audience === 6, JSON.stringify(info));
+  ok("Work 2: a service link carries its enquiry type to the Design 2 form", info.link === "/2/contact?type=Consulting#enquiry", info.link);
+  ok("Work 2: SAGE OS has four steps", info.steps === 4, info.steps);
+  await page.close();
+
+  const c = await open("/2/contact?type=Board%20Strategy");
+  const sel = await c.page.$eval("#enquiry select", (s) => s.value);
+  ok("Contact 2: the enquiry type arrives already chosen", sel === "Board Strategy", sel);
+  await c.page.click("#enquiry button[type='submit']");
+  await sleep(300);
+  const errs = await c.page.$$eval("#enquiry [aria-invalid='true']", (e) => e.length);
+  ok("Contact 2: an empty form is not sent and marks its required fields", errs >= 2, errs);
+  await c.page.close();
+}
+
+/* ---------------------------- Design 2 gallery and education ---------------------------- */
+{
+  const { page } = await open("/2/gallery");
+  const info = await page.evaluate(() => ({
+    strips: [...document.querySelectorAll("[data-strip]")].map((s) => s.dataset.strip),
+    photos: document.querySelectorAll("[data-strip-photo]").length,
+    journeys: document.querySelectorAll("[data-journey]").length,
+    stages: [...document.querySelectorAll("[data-journey] [data-stage]")].map((s) => s.dataset.stage).join(),
+  }));
+  ok("Gallery 2: one strip for each kind of place, and the teams", info.strips.join("|") === "Healthcare|Academic institutions|Hospitality|Offices|With teams on site" && info.photos >= 30, JSON.stringify(info).slice(0, 170));
+  ok("Gallery 2: two project journeys from work in progress to completed", info.journeys === 2 && info.stages === "Work in progress,Completed,Work in progress,Completed", info.stages);
+  await into(page, "[data-strip='Healthcare'] [data-strip-photo]");
+  await page.click("[data-strip='Healthcare'] [data-strip-photo]");
+  await sleep(500);
+  const t1 = await page.$eval("[data-viewer] img", (e) => e.getAttribute("alt")).catch(() => null);
+  await page.keyboard.press("ArrowRight");
+  await sleep(400);
+  const t2 = await page.$eval("[data-viewer] img", (e) => e.getAttribute("alt")).catch(() => null);
+  ok("Gallery 2: a photograph opens large and the arrow keys move along the strip", !!t1 && !!t2 && t1 !== t2, `${t1} -> ${t2}`);
+  await page.keyboard.press("Escape");
+  await sleep(300);
+  ok("Gallery 2: Escape closes the photograph", !(await page.$("[data-viewer]")));
+  const s0 = await page.$eval("[data-strip='Healthcare'] [role='group']", (e) => e.scrollLeft);
+  await page.click("[data-strip='Healthcare'] [data-slider-next]");
+  await sleep(900);
+  const s1 = await page.$eval("[data-strip='Healthcare'] [role='group']", (e) => e.scrollLeft);
+  ok("Gallery 2: a strip moves with its arrow", s1 > s0 + 200, `${s0} -> ${s1}`);
+  await page.close();
+}
+{
+  const { page } = await open("/2/simply-sage");
+  const info = await page.evaluate(() => ({
+    parts: ["simply-sage", "dr-gutsy"].every((id) => document.getElementById(id)),
+    doors: [...document.querySelectorAll("[data-door]")].map((d) => d.getAttribute("href")).join(),
+    sides: document.querySelectorAll("[data-gutsy-side]").length,
+    slots: document.querySelectorAll("[data-video-slots]").length,
+    questions: document.querySelectorAll("[data-questions] > li").length,
+    gutsyLogo: document.querySelector("[data-door='b'] svg[aria-label='Dr Gutsy'] path")?.getAttribute("fill"),
+  }));
+  ok("Education 2: both parts, five sides, six questions and two video lists", info.parts && info.doors === "#simply-sage,#dr-gutsy" && info.sides === 5 && info.slots === 2 && info.questions === 6, JSON.stringify(info));
+  ok("Education 2: the Dr Gutsy logo keeps its own greens", info.gutsyLogo === "#72a00d" || info.gutsyLogo === "#59750b", info.gutsyLogo);
+  await page.close();
+}
+
+/* ------------------------------- Design 2 on a phone ------------------------------- */
+for (const path of PAGES2) {
+  const { page } = await open(path, 390, 844);
+  await walk(page);
+  const over = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  ok(`${path} fits a phone screen`, over <= 0, over);
+  await page.close();
+}
+{
+  const { page } = await open("/2", 390, 844);
+  await page.click("[data-site-header] button[aria-controls='site-menu']");
+  await sleep(300);
+  const menu = await page.evaluate(() => ({ shown: !document.getElementById("site-menu").hidden, links: [...document.querySelectorAll("#site-menu a")].map((a) => a.getAttribute("href")) }));
+  ok("Phone 2: the menu opens with all nine pages", menu.shown && menu.links.length === 9 && menu.links.every((h) => h.startsWith("/2/")), JSON.stringify(menu).slice(0, 170));
+  await page.click("#site-menu a[href='/2/discover']");
+  await page.waitForFunction(() => location.pathname === "/2/discover", { timeout: 60000 });
+  await sleep(500);
+  ok("Phone 2: choosing a page closes the menu", await page.$eval("#site-menu", (e) => e.hidden));
+  await page.close();
+}
+
 await browser.close();
 const failed = results.filter((r) => !r.pass);
 for (const r of results) console.log(`${r.pass ? "PASS" : "FAIL"}  ${r.name}${r.pass ? "" : `   [${r.detail}]`}`);
