@@ -1,7 +1,13 @@
 # Sagework website
 
-The Sagework website: one design, built to the Sagework brand manual and Dr Shruti Pai's
-answers to the build questionnaire. Next.js, TypeScript and Tailwind CSS.
+The Sagework website, built to the Sagework brand manual and Dr Shruti Pai's answers to
+the build questionnaire. Next.js, TypeScript and Tailwind CSS.
+
+Two designs are under review. **Design 1** is at the site root. **Design 2** has the same
+ten pages under `/2` (`/2`, `/2/founder`, `/2/projects` and so on). They share the
+colours, typefaces, logo and wording; the layout, the components and the photographs are
+different, and no photograph appears in both. A small switch in the bottom right corner of
+every page opens the same page in the other design.
 
 | Page                         | Route                 |
 | ---------------------------- | --------------------- |
@@ -42,8 +48,9 @@ With the dev server running on port 3000:
 npm run test:ui
 ```
 
-This drives a headless Chrome through every page (154 checks): brand rules on each page
-(white header, logo artwork, green footer, one italic headline), the hero film and the
+This drives a headless Chrome through every page of both designs (347 checks): brand rules
+on each page (white header, logo artwork, footer colour, one italic headline), that the two
+designs share no photograph, the hero film and the
 contrast of its white text over each photograph, the
 triad, the five senses, the phone menu, the founder chapters, the white-paper lists and
 request form, the contact form's validation, the gallery and its viewer. Set `CHROME_PATH`

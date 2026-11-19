@@ -30,7 +30,7 @@ export function ProjectIndex({ kinds, projects }: { kinds: KindInfo[]; projects:
   const hash = useHash();
   const [picked, setPicked] = useState<string | null>(null);
   const fromHash = projects.some((p) => p.slug === hash) ? hash : null;
-  // Open on the first project that has photographs.
+  // Open on the first project that has photographs (all of them do today).
   const slug = picked ?? fromHash ?? (projects.find((x) => x.photos.length) ?? projects[0]).slug;
   const p = projects.find((x) => x.slug === slug)!;
   const kind = kinds.find((k) => k.name === p.kind)!;
@@ -176,10 +176,8 @@ export function ProjectIndex({ kinds, projects }: { kinds: KindInfo[]; projects:
             {!lead ? (
               <aside data-note className="mt-6 border border-dashed border-amber bg-cream/45 px-4 py-3 text-[14px] leading-snug text-ink-deep">
                 <p className="text-[11.5px] font-semibold uppercase tracking-[0.14em] text-[#8a5f00]">Photographs needed</p>
-                <p className="mt-1.5">More photographs of this project, so that it can be shown in pictures here.</p>
-                <p className="mt-1.5 text-ink-soft">
-                  Why: the two designs do not share a photograph, and every picture we hold of this project is already used in Design 1.
-                </p>
+                <p className="mt-1.5">Photographs of this project, so that it can be shown in pictures here.</p>
+                <p className="mt-1.5 text-ink-soft">Why: we hold no photograph of this project that Dr Shruti has approved.</p>
               </aside>
             ) : null}
           </div>

@@ -112,7 +112,7 @@ export default function ProjectsTwo() {
             From work in progress to the <em>completed project</em>
           </H>
           <p className="mt-6">
-            {journey.title}, {journey.place}: the building under construction and the hall on the day it was ready.
+            {journey.title}, {journey.place}: the same room under scaffolding and on the day it was ready.
           </p>
         </Reveal>
         <ol data-projects-journey className="mt-10 grid items-start gap-6 md:grid-cols-[1fr_auto_1fr]">
