@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { LeafCursor } from "@/components/brand/Leaf";
-import { Footer, Header } from "@/components/site/Chrome";
+import { DesignSwitch } from "@/components/shared/DesignSwitch";
 import { sans, serif } from "./fonts";
 import "./globals.css";
 
@@ -24,6 +23,11 @@ export const viewport: Viewport = {
   themeColor: "#ffffff",
 };
 
+/**
+ * The shell both designs share: fonts, colours and the skip link. Each design brings
+ * its own header, footer and page width in its own layout: `(one)/layout.tsx` for
+ * Design 1 at the site root and `2/layout.tsx` for Design 2 under /2.
+ */
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${serif.variable} ${sans.variable}`}>
@@ -34,10 +38,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         >
           Skip to content
         </a>
-        <Header />
-        <main id="main">{children}</main>
-        <Footer />
-        <LeafCursor />
+        {children}
+        <DesignSwitch />
       </body>
     </html>
   );
