@@ -581,7 +581,10 @@ for (const [w, h] of [[1440, 900], [390, 844]]) {
 
 /* ================================== Design 2 ================================== */
 /* Design 2 lives under /2: same colours, typefaces, logo and wording, another layout,
-   and a set of photographs of its own. */
+   and a set of photographs of its own. From Design 1 it borrows only the photographs
+   Dr Shruti ticked, and only for the projects and the gallery; src/content/two.ts
+   stops the build if any other Design 1 photograph is used. */
+const BORROWS = ["/2", "/2/projects", "/2/gallery"];
 const PAGES2 = PAGES.map((p) => (p === "/" ? "/2" : `/2${p}`));
 
 for (const path of PAGES2) {
@@ -621,7 +624,7 @@ for (const path of PAGES2) {
   ok(`${path} leaves nothing hidden after scrolling`, info.hidden === 0, info.hidden);
   ok(`${path} has no em or en dashes in its text`, !info.dashes);
   ok(`${path} has no broken images`, info.broken === 0, info.broken);
-  ok(`${path} shows no photograph that Design 1 uses`, info.foreign.length === 0, info.foreign.join(", "));
+  if (!BORROWS.includes(path)) ok(`${path} uses Design 2's own photographs only`, info.foreign.length === 0, info.foreign.join(", "));
   ok(`${path} keeps every link inside Design 2`, info.outside.length === 0, info.outside.join(", "));
   ok(`${path} does not borrow Design 1's card shape`, info.leafcut === 0, info.leafcut);
   await page.close();
@@ -769,7 +772,7 @@ for (const path of PAGES) {
     open: document.querySelector("[data-project-detail]").dataset.projectDetail,
     img: !!document.querySelector("[data-project-detail] img"),
   }));
-  ok("Projects 2: fourteen projects in five kinds of place, opening on one with photographs", first.items === 14 && first.kinds === 5 && first.open === "mangalore" && first.img, JSON.stringify(first));
+  ok("Projects 2: fourteen projects in five kinds of place, opening on one with photographs", first.items === 14 && first.kinds === 5 && first.open === "dwarka" && first.img, JSON.stringify(first));
   await page.click('[data-project-item="marc"]');
   await sleep(500);
   const marc = await page.evaluate(() => ({
@@ -779,7 +782,7 @@ for (const path of PAGES) {
     pressed: document.querySelectorAll("[data-project-item][aria-pressed='true']").length,
     lead: document.querySelector("[data-project-detail] img").getAttribute("alt"),
   }));
-  ok("Projects 2: choosing a project shows it", marc.open === "marc" && /MARC/.test(marc.title) && marc.thumbs === 4 && marc.pressed === 1, JSON.stringify(marc));
+  ok("Projects 2: choosing a project shows it", marc.open === "marc" && /MARC/.test(marc.title) && marc.thumbs === 5 && marc.pressed === 1, JSON.stringify(marc));
   await page.click("[data-project-thumb]:nth-of-type(1)");
   await page.$$eval("[data-project-thumb]", (t) => t[2].click());
   await sleep(500);
@@ -787,8 +790,19 @@ for (const path of PAGES) {
   ok("Projects 2: a small photograph becomes the large one", lead2 !== marc.lead, `${marc.lead} -> ${lead2}`);
   await page.click('[data-project-item="chef-on-wheels"]');
   await sleep(400);
-  const words = await page.evaluate(() => ({ note: !!document.querySelector("[data-project-detail] [data-note]"), img: document.querySelectorAll("[data-project-detail] img").length, text: document.querySelector("[data-project-detail]").innerText }));
-  ok("Projects 2: a project with no separate photograph is told in words, and says so", words.note && words.img === 0 && /110,000 meals/.test(words.text), JSON.stringify(words).slice(0, 160));
+  const chef = await page.evaluate(() => ({
+    note: !!document.querySelector("[data-project-detail] [data-note]"),
+    lead: decodeURIComponent(document.querySelector("[data-project-detail] img")?.getAttribute("src") ?? ""),
+    text: document.querySelector("[data-project-detail]").innerText,
+  }));
+  ok("Projects 2: Chef on Wheels is shown with the photograph Dr Shruti ticked", !chef.note && /chef-van-serving/.test(chef.lead) && /110,000 meals/.test(chef.text), JSON.stringify(chef).slice(0, 160));
+  const every = [];
+  for (const slug of await page.$$eval("[data-project-item]", (b) => b.map((x) => x.dataset.projectItem))) {
+    await page.click(`[data-project-item="${slug}"]`);
+    await sleep(120);
+    if (!(await page.$("[data-project-detail] img"))) every.push(slug);
+  }
+  ok("Projects 2: every project has a photograph", every.length === 0, every.join());
   await page.click('[data-project-item="old-airport-road"]');
   await sleep(400);
   const link = await page.$eval("[data-project-detail] [data-project-link]", (a) => [a.href, a.target, a.rel]);
@@ -865,8 +879,8 @@ for (const path of PAGES) {
   const { page } = await open("/2/research");
   const info = await page.evaluate(() => ({
     index: document.querySelectorAll("[data-page-index] a").length,
-    pubs: document.querySelectorAll("[id^='publication-']").length,
-    pre: document.querySelectorAll("[id^='preprint-']").length,
+    pubs: document.querySelectorAll("[data-row][id^='publication-']").length,
+    pre: document.querySelectorAll("[data-row][id^='preprint-']").length,
     series: [...document.querySelectorAll("[data-series]")].map((s) => s.querySelectorAll("[data-row]").length),
     buttons: [...document.querySelectorAll("[data-research-buttons] a")].map((a) => [a.textContent.trim(), a.href, a.target]),
     open: document.querySelectorAll("[data-row][data-open='true']").length,
@@ -917,8 +931,10 @@ for (const path of PAGES) {
     journeys: document.querySelectorAll("[data-journey]").length,
     stages: [...document.querySelectorAll("[data-journey] [data-stage]")].map((s) => s.dataset.stage).join(),
   }));
-  ok("Gallery 2: one strip for each kind of place, and the teams", info.strips.join("|") === "Healthcare|Academic institutions|Hospitality|Offices|With teams on site" && info.photos >= 30, JSON.stringify(info).slice(0, 170));
-  ok("Gallery 2: two project journeys from work in progress to completed", info.journeys === 2 && info.stages === "Work in progress,Completed,Work in progress,Completed", info.stages);
+  ok("Gallery 2: one strip for each kind of place, and the teams", info.strips.join("|") === "Healthcare|Academic institutions|Hospitality|Kitchens|Offices|With teams on site" && info.photos >= 55, JSON.stringify(info).slice(0, 170));
+  ok("Gallery 2: three project journeys from work in progress to completed", info.journeys === 3 && info.stages === "Work in progress,Completed,Work in progress,Completed,Work in progress,Completed", info.stages);
+  const firsts = await page.$$eval("[data-strip]", (s) => s.map((x) => decodeURIComponent(x.querySelector("img")?.getAttribute("src") ?? "")).slice(0, 5));
+  ok("Gallery 2: each kind of place opens with a photograph Dr Shruti ticked", firsts.every((src) => /\/images\/(hospitals|academic|hospitality)\//.test(src)), firsts.map((f) => f.split("/images/")[1]?.split("&")[0]).join(", "));
   await into(page, "[data-strip='Healthcare'] [data-strip-photo]");
   await page.click("[data-strip='Healthcare'] [data-strip-photo]");
   await sleep(500);

@@ -10,14 +10,15 @@ import { stages, strips } from "@/content/two";
 
 export const metadata: Metadata = {
   title: "Photo gallery",
-  description: "Photographs of healthcare, hospitality, academic and office projects shaped by Dr Shruti Pai and her teams.",
+  description: "Photographs of healthcare, hospitality, academic, kitchen and office projects shaped by Dr Shruti Pai and her teams.",
 };
 
 /**
  * Photo gallery, in the Design 2 layout: the project journey first, then one strip of
- * photographs for each kind of place. It follows "Visual Direction for Website
- * Projects" as Design 1 does: artwork shown in its space, large projects leading, and
- * nothing from the list of pictures Dr Shruti said no to.
+ * photographs for each kind of place. Each strip opens with the photographs Dr Shruti
+ * ticked in her catalogues and continues with others from the Design 2 set. It follows
+ * "Visual Direction for Website Projects" as Design 1 does: artwork shown in its space,
+ * large projects leading, and nothing from the list of pictures she said no to.
  */
 export default function GalleryTwo() {
   return (
@@ -30,7 +31,7 @@ export default function GalleryTwo() {
             The work, <em>in pictures</em>
           </>
         }
-        lead="Healthcare, academic institutions, hospitality and offices, and the teams on site."
+        lead="Healthcare, hospitality, academic institutions, kitchens and offices."
       />
 
       {/* The project journey */}
@@ -99,10 +100,7 @@ export default function GalleryTwo() {
             }),
           }))}
         />
-        <div className="mt-10 grid gap-4 border-t border-line pt-10 md:grid-cols-3">
-          <Note why="the two designs do not share a photograph, and every kitchen photograph we hold (WGSHA and Chef on Wheels) is already used in Design 1.">
-            More photographs of the kitchens, so that Kitchens can have its own strip here as it does in Design 1.
-          </Note>
+        <div className="mt-10 grid gap-4 border-t border-line pt-10 md:grid-cols-2">
           <Note why="the Visual Direction asks for high-resolution photographs from the project drive or approved online sources; the catalogue pictures are reference only.">
             Original, high-resolution files for the photographs Dr Shruti ticked that are not in the shared folders: the Dwarka exterior by
             day and by night, the Whitefield reception counters, the paediatric ward designed around water, the CT room with the nature
